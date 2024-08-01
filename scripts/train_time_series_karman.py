@@ -63,7 +63,7 @@ def train():
 
     opt = parser.parse_args()
     if opt.wandb_active == True:
-        wandb.init(project='karman', config=vars(opt))
+        wandb.init(project='karman', group='tft', config=vars(opt))
         # wandb.init(mode="disabled")
         if opt.run_name != '':
             wandb.run.name = opt.run_name
@@ -290,7 +290,7 @@ def train():
 
             #We compute the logged quantities
             #log to wandb:
-            if opt.wandb_active==False:
+            if opt.wandb_active==True:
                 wandb.log({ 'q_loss_train':q_loss.item(),
                             'nn_mse_train':loss_nn.item(),
                             'nrlmsise00_mse_train':loss_nrlmsise00,
@@ -323,7 +323,7 @@ def train():
             if batch_idx%10:    
                 print(f'minibatch: {batch_idx}/{len(train_loader)}, best minibatch loss till now: {best_loss_train:.4e}, NN MSE: {losses_per_minibatch['nn_mse_train'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_train'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_train'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_train'][-1]:.3f}', end='\r')
         #log to wandb:
-        if opt.wandb_active==False:
+        if opt.wandb_active==True:
                 
             wandb.log({     'q_loss_train_total':q_loss_total/len(train_loader),
                             'nn_mse_train_total':loss_total_nn/len(train_loader),
@@ -406,8 +406,7 @@ def train():
                 loss_nrlmsise00 = mse(target_nrlmsise00.detach().cpu().numpy(), target.detach().cpu().numpy())
                 #We compute the logged quantities
                 #log to wandb:
-                if opt.wandb_active==False:
-                        
+                if opt.wandb_active==True:
                     wandb.log({'q_loss_valid':q_loss.item(),
                                 'nn_mse_valid':loss_nn.item(),'nrlmsise00_mse_valid':loss_nrlmsise00,
                                 'nn_mape_valid':mean_absolute_percentage_error(rho_nn, rho_target),
@@ -439,7 +438,7 @@ def train():
                 if batch_idx%10:    
                     print(f'minibatch: {batch_idx}/{len(validation_loader)}, best minibatch loss till now: {best_loss_valid:.4e}, NN MSE: {losses_per_minibatch['nn_mse_valid'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_valid'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_valid'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_valid'][-1]:.3f}', end='\r')
             #log to wandb:
-            if opt.wandb_active==False:
+            if opt.wandb_active==True:
                     
                 wandb.log({     'q_loss_valid_total':q_loss_total/len(validation_loader),
                                 'nn_mse_valid_total':loss_total_nn/len(validation_loader),
