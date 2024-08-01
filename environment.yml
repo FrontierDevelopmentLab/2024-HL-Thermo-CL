@@ -18,3 +18,4 @@ dependencies:
     - nrlmsise00
     - spaceweather
     - pyatmos
+    - tft-torch 
