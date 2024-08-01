@@ -373,7 +373,6 @@ def train():
         with torch.no_grad():
             for batch_idx,el in enumerate(validation_loader):
                 historical_ts_numeric=[]
-                future_ts_numeric=[]                
                 if opt.omni_indices_path != 'None':
                     historical_ts_numeric.append(el['omni_indices'][:,:-1,:])
                 if opt.omni_magnetic_field_path != 'None':
@@ -382,11 +381,12 @@ def train():
                     historical_ts_numeric.append(el['omni_solar_wind'][:,:-1,:])
                 if opt.nrlmsise00_path != 'None':
                     historical_ts_numeric.append(el['msise'][:,:-1,:])
+
                 if len(historical_ts_numeric)>1:
                     historical_ts_numeric=torch.cat(historical_ts_numeric,dim=2)
                 else:
                     historical_ts_numeric=historical_ts_numeric[0]
-                    future_ts_numeric=future_ts_numeric[0].unsqueeze(1)
+                future_ts_numeric=el['msise'][:,-1,:].unsqueeze(1)
                 historical_ts_numeric=historical_ts_numeric.to(device)
                 future_ts_numeric=future_ts_numeric.to(device)
 
