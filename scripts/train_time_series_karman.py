@@ -62,6 +62,10 @@ def train():
     parser.add_argument('--wandb_active', type=bool, default=True, help='Flag to activate/deactivate weights and biases')
 
     opt = parser.parse_args()
+
+    if opt.nrlmsise00_path=='None':
+        raise ValueError('NRLMSISE-00 path must be provided')
+
     if opt.wandb_active == True:
         wandb.init(project='karman', group='tft', config=vars(opt))
         # wandb.init(mode="disabled")
@@ -86,8 +90,10 @@ def train():
                                         min_date=pd.to_datetime(opt.min_date),
                                         max_date=pd.to_datetime(opt.max_date),
                                         normalization_dict=None,
-                                        omni_indices_path=opt.omni_indices_path,
-                                        nrlmsise00_path=opt.nrlmsise00_path,
+                                        nrlmsise00_path=[None if opt.nrlmsise00_path=='None' else opt.nrlmsise00_path][0],
+                                        omni_indices_path=[None if opt.omni_indices_path=='None' else opt.omni_indices_path][0],
+                                        omni_magnetic_field_path=[None if opt.omni_magnetic_field_path=='None' else opt.omni_magnetic_field_path][0],
+                                        omni_solar_wind_path=[None if opt.omni_solar_wind_path=='None' else opt.omni_solar_wind_path][0],                                        
                                         lag_minutes_nrlmsise00=opt.lag_minutes,
                                         nrlmsise00_resolution=opt.resolution_minutes,
                                         lag_minutes_omni=opt.lag_minutes,
@@ -103,9 +109,13 @@ def train():
     # set configuration
     num_historical_numeric=0
     
-    if opt.omni_indices_path is not None:
+    if opt.omni_indices_path != 'None':
         num_historical_numeric+=karman_dataset[0]['omni_indices'].shape[1]
-    if opt.nrlmsise00_path is not None:
+    if opt.omni_magnetic_field_path!='None':
+        num_historical_numeric+=karman_dataset[0]['omni_magnetic_field'].shape[1]
+    if opt.omni_solar_wind_path!='None':
+        num_historical_numeric+=karman_dataset[0]['omni_solar_wind'].shape[1]
+    if opt.nrlmsise00_path!='None':
         num_historical_numeric+=karman_dataset[0]['msise'].shape[1]
 #    if opt.goes_path is not None:
 #        raise NotImplementedError('GOES dataset not implemented yet')
@@ -235,9 +245,13 @@ def train():
         for batch_idx,el in enumerate(train_loader):
             #Just extracting the historical and future time series and making sure to concatenate in case there are multiple datasets
             historical_ts_numeric=[]
-            if opt.omni_indices_path is not None:
+            if opt.omni_indices_path != 'None':
                 historical_ts_numeric.append(el['omni_indices'][:,:-1,:])
-            if opt.nrlmsise00_path is not None:
+            if opt.omni_magnetic_field_path != 'None':
+                historical_ts_numeric.append(el['omni_magnetic_field'][:,:-1,:])
+            if opt.omni_solar_wind_path != 'None':
+                historical_ts_numeric.append(el['omni_solar_wind'][:,:-1,:])
+            if opt.nrlmsise00_path != 'None':
                 historical_ts_numeric.append(el['msise'][:,:-1,:])
             if len(historical_ts_numeric)>1:
                 historical_ts_numeric=torch.cat(historical_ts_numeric,dim=2)
@@ -359,16 +373,17 @@ def train():
         with torch.no_grad():
             for batch_idx,el in enumerate(validation_loader):
                 historical_ts_numeric=[]
-                future_ts_numeric=[]
-                if opt.omni_indices_path is not None:
+                future_ts_numeric=[]                
+                if opt.omni_indices_path != 'None':
                     historical_ts_numeric.append(el['omni_indices'][:,:-1,:])
-                    future_ts_numeric.append(el['omni_indices'][:,-1,:])
-                if opt.nrlmsise00_path is not None:
+                if opt.omni_magnetic_field_path != 'None':
+                    historical_ts_numeric.append(el['omni_magnetic_field'][:,:-1,:])
+                if opt.omni_solar_wind_path != 'None':
+                    historical_ts_numeric.append(el['omni_solar_wind'][:,:-1,:])
+                if opt.nrlmsise00_path != 'None':
                     historical_ts_numeric.append(el['msise'][:,:-1,:])
-                    future_ts_numeric.append(el['msise'][:,-1,:])
                 if len(historical_ts_numeric)>1:
                     historical_ts_numeric=torch.cat(historical_ts_numeric,dim=2)
-                    future_ts_numeric=torch.cat(future_ts_numeric,dim=1).unsqueeze(1)
                 else:
                     historical_ts_numeric=historical_ts_numeric[0]
                     future_ts_numeric=future_ts_numeric[0].unsqueeze(1)
@@ -385,7 +400,7 @@ def train():
                 target=el['target'].to(device)
                 rho_target=el['ground_truth'].detach().cpu().numpy()
                 batch_out=tft_model(minibatch)
-                target_nn_median=predicted_quantiles[:, :, 1].squeeze()
+                target_nn_median=predicted_quantiles[:, :, 0].squeeze()
                 #now the quantiles:
                 predicted_quantiles = batch_out['predicted_quantiles']
                 q_loss, q_risk, _ = tft_loss.get_quantiles_loss_and_q_risk(outputs=predicted_quantiles,
