@@ -1,0 +1,20 @@
+name: karman_hl_2024
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - pip
+  - matplotlib
+  - jupyter
+  - pytorch
+  - scikit-learn
+  - pandas
+  - pytables
+  - tqdm
+  - pyfiglet
+  - termcolor
+  - wandb
+  - pip:
+    - nrlmsise00
+    - spaceweather
+    - pyatmos
