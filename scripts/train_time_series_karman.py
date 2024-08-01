@@ -156,7 +156,7 @@ def train():
     print(f'Karman model num parameters: {num_params}')
     
     # create batch as an example
-    historical_steps = karman_dataset[0]['omni_indices'].shape[0]-1
+    historical_steps = karman_dataset[0]['msise'].shape[0]-1
     future_steps = 1
 
     #Train, validation, test splits:
