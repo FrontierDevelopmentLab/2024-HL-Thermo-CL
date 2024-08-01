@@ -54,7 +54,7 @@ def train():
     parser.add_argument('--nrlmsise00_path', type=str, default='../data/nrlmsise00_data/nrlmsise00_time_series.csv', help='Path to the nrlmsise00 dataset')
     parser.add_argument('--goes_path', type=str, default=None, help='Path to the goes dataset')
     parser.add_argument('--lag_minutes', type=int, default=500, help='Lag in minutes for the time series datasets, default is 500 minutes')
-    parser.add_argument('--resolution_minutes', type=str, default=10, help='Resolution for the time series datasets, default is 10 minutes')
+    parser.add_argument('--resolution_minutes', type=int, default=10, help='Resolution for the time series datasets, default is 10 minutes')
     parser.add_argument('--dropout', type=float, default=0.05, help='Dropout rate for the TFT model')
     parser.add_argument('--state_size', type=int, default=64, help='State size for the TFT model')
     parser.add_argument('--lstm_layers', type=int, default=2, help='Number of LSTM layers of the TFT')
