@@ -1,7 +1,7 @@
-# 2024-HL-ThermoCL
-FDL-X Heliolab 2024: Thermospheric Density Continuous Learning
-
-![Thermo 2024 Team Badge](assets/badge.png)
+<p align="center">
+  <img src="assets/badge.png" alt="Thermo 2024 Team Badge" width=200/><br/>
+  FDL-X Heliolab 2024<br/><strong>Thermospheric Density Continuous Learning</strong>
+</p>
 
 # Getting Started
 This section includes an overview of this repository and how to quickly get moving with the codebase. 
