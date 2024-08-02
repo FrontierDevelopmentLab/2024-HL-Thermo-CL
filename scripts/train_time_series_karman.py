@@ -402,9 +402,9 @@ def train():
                 target=el['target'].to(device)
                 rho_target=el['ground_truth'].detach().cpu().numpy()
                 batch_out=tft_model(minibatch)
-                target_nn_median=predicted_quantiles[:, :, 0].squeeze()
                 #now the quantiles:
                 predicted_quantiles = batch_out['predicted_quantiles']
+                target_nn_median=predicted_quantiles[:, :, 0].squeeze()
                 q_loss, q_risk, _ = tft_loss.get_quantiles_loss_and_q_risk(outputs=predicted_quantiles,
                                                                             targets=target,
                                                                             desired_quantiles=quantiles_tensor)
