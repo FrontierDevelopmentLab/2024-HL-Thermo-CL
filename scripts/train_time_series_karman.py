@@ -105,8 +105,8 @@ def train():
                                         omni_resolution=opt.resolution_minutes,
                             )
     input_dimension=karman_dataset[0]['instantaneous_features'].shape[0]
-    if opt.device=='cuda':
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if opt.device.startswith('cuda'):
+        device = torch.device(opt.device if torch.cuda.is_available() else 'cpu')
     else:
         device=torch.device('cpu')    
     print(f'Device is {device}')
