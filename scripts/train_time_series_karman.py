@@ -17,6 +17,7 @@ import pprint
 import time
 from torch import optim
 from torch.utils.data import RandomSampler, SequentialSampler
+import random
 
 def mean_absolute_percentage_error(y_pred,y_true):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
@@ -24,6 +25,10 @@ def mean_absolute_percentage_error(y_pred,y_true):
 def mse(y_pred,y_true):
     return np.mean((y_true - y_pred) ** 2)
 
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 def train():
     print('Karman Model Training -> Forecasting the density of the atmosphere')
@@ -186,6 +191,10 @@ def train():
     criterion=torch.nn.MSELoss()
 
     # And the dataloader
+    #seed them
+    g = torch.Generator()
+    g.manual_seed(0)
+
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=opt.batch_size,
@@ -193,6 +202,8 @@ def train():
         num_workers=opt.num_workers,
         sampler=train_sampler,
         drop_last=True,
+        worker_init_fn=seed_worker,
+        generator=g
     )
     validation_loader = torch.utils.data.DataLoader(
         validation_dataset,
@@ -201,6 +212,8 @@ def train():
         num_workers=opt.num_workers,
         sampler=validation_sampler,
         drop_last=True,
+        worker_init_fn=seed_worker,
+        generator=g
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
@@ -209,6 +222,8 @@ def train():
         num_workers=opt.num_workers,
         sampler=test_sampler,
         drop_last=False,
+        worker_init_fn=seed_worker,
+        generator=g
     )
 
     losses_per_minibatch={  'q_loss_train':[],'q_risk_train':[],
