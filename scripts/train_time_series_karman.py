@@ -200,7 +200,7 @@ def train():
         pin_memory=False,
         num_workers=opt.num_workers,
         sampler=validation_sampler,
-        drop_last=False,
+        drop_last=True,
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
@@ -334,8 +334,8 @@ def train():
                 best_q_loss_train=q_loss.item()
 
             #Print every 10 minibatches:
-            if batch_idx%10:    
-                print(f'minibatch: {batch_idx}/{len(train_loader)}, best minibatch loss till now: {best_loss_train:.4e}, NN MSE: {losses_per_minibatch['nn_mse_train'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_train'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_train'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_train'][-1]:.3f}', end='\r')
+            #if batch_idx%10:    
+            #    print(f'minibatch: {batch_idx}/{len(train_loader)}, best minibatch loss till now: {best_loss_train:.4e}, NN MSE: {losses_per_minibatch['nn_mse_train'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_train'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_train'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_train'][-1]:.3f}', end='\r')
         #log to wandb:
         if opt.wandb_active==True:
                 
@@ -450,8 +450,8 @@ def train():
                     best_q_loss_valid=q_loss.item()
 
                 #Print every 10 minibatches:
-                if batch_idx%10:    
-                    print(f'minibatch: {batch_idx}/{len(validation_loader)}, best minibatch loss till now: {best_loss_valid:.4e}, NN MSE: {losses_per_minibatch['nn_mse_valid'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_valid'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_valid'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_valid'][-1]:.3f}', end='\r')
+                #if batch_idx%10:    
+                #    print(f'minibatch: {batch_idx}/{len(validation_loader)}, best minibatch loss till now: {best_loss_valid:.4e}, NN MSE: {losses_per_minibatch['nn_mse_valid'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_valid'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_valid'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_valid'][-1]:.3f}', end='\r')
             #log to wandb:
             if opt.wandb_active==True:
                     
