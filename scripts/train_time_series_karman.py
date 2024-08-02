@@ -329,7 +329,6 @@ def train():
             losses_per_minibatch['q_loss_train'].append(q_loss.item())
             losses_per_minibatch['q_risk_train'].append(q_risk.detach().cpu().numpy())
             losses_per_minibatch['nn_mse_train'].append(loss_nn.item())
-            losses_per_minibatch['nn_mse_train'].append(loss_nn.item())
             losses_per_minibatch['nrlmsise00_mse_train'].append(loss_nrlmsise00)
             losses_per_minibatch['nn_mape_train'].append(mean_absolute_percentage_error(rho_nn, rho_target))
             losses_per_minibatch['nrlmsise00_mape_train'].append(mean_absolute_percentage_error(rho_nrlmsise00, rho_target))
