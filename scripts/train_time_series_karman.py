@@ -364,6 +364,8 @@ def train():
         #scheduler.step()
         
         #Validation loop:
+        q_loss_total=0.
+        q_risk_total=0.
         loss_total_nn=0.
         loss_total_nrlmsise00=0.
         mape_total_nn=0.
@@ -430,7 +432,6 @@ def train():
                 losses_per_minibatch['q_loss_valid'].append(q_loss.item())
                 losses_per_minibatch['q_risk_valid'].append(q_risk.detach().cpu().numpy())
                 losses_per_minibatch['nn_mse_valid'].append(loss_nn.item())
-                losses_per_minibatch['nn_mse_valid'].append(loss_nn.item())
                 losses_per_minibatch['nrlmsise00_mse_valid'].append(loss_nrlmsise00)
                 losses_per_minibatch['nn_mape_valid'].append(mean_absolute_percentage_error(rho_nn, rho_target))
                 losses_per_minibatch['nrlmsise00_mape_valid'].append(mean_absolute_percentage_error(rho_nrlmsise00, rho_target))
@@ -478,7 +479,7 @@ def train():
             import os
             if not os.path.exists('../models'):
                 os.makedirs('../models')
-            torch.save(tft_model.state_dict(), f'../models/tft_model_{opt.train_type}_valid_loss_{losses_total['nn_mse_valid'][-1]}_params_{num_params}.torch')
+            torch.save(tft_model.state_dict(), f'../models/tft_model_tft_valid_loss_{losses_total['nn_mse_valid'][-1]}_params_{num_params}.torch')
             best_loss_total_valid=losses_total['nn_mse_valid'][-1]
 
 if __name__ == "__main__":
