@@ -493,7 +493,7 @@ def train():
             import os
             if not os.path.exists('../models'):
                 os.makedirs('../models')
-            torch.save(tft_model.state_dict(), f'../models/tft_model_tft_valid_loss_{losses_total['nn_mse_valid'][-1]}_params_{num_params}.torch')
+            torch.save(tft_model.state_dict(), f'../models/tft_model_tft_{opt.run_name}_valid_mape_{losses_total['nn_mape_valid'][-1]:.3f}_params_{num_params}.torch')
             best_loss_total_valid=losses_total['nn_mse_valid'][-1]
 
 if __name__ == "__main__":
