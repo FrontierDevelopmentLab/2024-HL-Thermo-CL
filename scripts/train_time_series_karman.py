@@ -65,7 +65,8 @@ def train():
     parser.add_argument('--lstm_layers', type=int, default=2, help='Number of LSTM layers of the TFT')
     parser.add_argument('--attention_heads', type=int, default=4, help='Number of attention heads for the TFT')
     parser.add_argument('--wandb_active', type=bool, default=True, help='Flag to activate/deactivate weights and biases')
-
+    parser.add_argument('--features_to_exclude_thermo', type=str, default='', help='Comma-separated features to exclude from the thermo dataset, besides the ones that are already excluded by default (see default in the KarmanDataset class)')
+    #celestrack__ap_average__,JB08__d_st_dt__[K],space_environment_technologies__f107_obs__,space_environment_technologies__f107_average__,space_environment_technologies__s107_obs__,space_environment_technologies__s107_average__,space_environment_technologies__m107_obs__,space_environment_technologies__m107_average__,space_environment_technologies__y107_obs__,space_environment_technologies__y107_average__
     opt = parser.parse_args()
 
     if opt.nrlmsise00_path=='None':
@@ -90,7 +91,9 @@ def train():
     else:
         raise ValueError('Invalid torch type. Only float32 and float64 are supported')
     torch.set_default_dtype(torch_type)
-
+    features_to_exclude_thermo=["all__dates_datetime__", "tudelft_thermo__satellite__", "tudelft_thermo__ground_truth_thermospheric_density__[kg/m**3]", "all__year__[y]", "NRLMSISE00__thermospheric_density__[kg/m**3]"]
+    if opt.features_to_exclude_thermo!='':    
+        features_to_exclude_thermo+=opt.features_to_exclude_thermo.split(',')
     karman_dataset=karman.KarmanDataset(thermo_path=opt.thermo_path,
                                         min_date=pd.to_datetime(opt.min_date),
                                         max_date=pd.to_datetime(opt.max_date),
@@ -103,6 +106,7 @@ def train():
                                         nrlmsise00_resolution=opt.resolution_minutes,
                                         lag_minutes_omni=opt.lag_minutes,
                                         omni_resolution=opt.resolution_minutes,
+                                        features_to_exclude_thermo=features_to_exclude_thermo
                             )
     input_dimension=karman_dataset[0]['instantaneous_features'].shape[0]
     if opt.device.startswith('cuda'):
