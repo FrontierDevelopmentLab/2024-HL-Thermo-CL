@@ -65,7 +65,7 @@ def train():
     parser.add_argument('--state_size', type=int, default=64, help='State size for the TFT model')
     parser.add_argument('--lstm_layers', type=int, default=2, help='Number of LSTM layers of the TFT')
     parser.add_argument('--attention_heads', type=int, default=4, help='Number of attention heads for the TFT')
-    parser.add_argument('--wandb_inactive', action='store_false', help='Flag to activate/deactivate weights and biases')
+    parser.add_argument('--wandb_active', action='store_false', help='Flag to activate/deactivate weights and biases')
     #parser.add_argument('--no-wandb_active', dest='wandb_active', action='store_false', help='Flag to activate/deactivate weights and biases')
     parser.add_argument('--features_to_exclude_thermo', type=str, default='', help='Comma-separated features to exclude from the thermo dataset, besides the ones that are already excluded by default (see default in the KarmanDataset class)')
     #celestrack__ap_average__,JB08__d_st_dt__[K],space_environment_technologies__f107_obs__,space_environment_technologies__f107_average__,space_environment_technologies__s107_obs__,space_environment_technologies__s107_average__,space_environment_technologies__m107_obs__,space_environment_technologies__m107_average__,space_environment_technologies__y107_obs__,space_environment_technologies__y107_average__
