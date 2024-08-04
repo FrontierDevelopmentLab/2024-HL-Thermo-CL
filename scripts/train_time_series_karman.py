@@ -58,13 +58,15 @@ def train():
     parser.add_argument('--omni_solar_wind_path', type=str, default='../data/omniweb_data/merged_omni_solar_wind.csv', help='Path to the omni solar wind dataset')
     parser.add_argument('--nrlmsise00_path', type=str, default='../data/nrlmsise00_data/nrlmsise00_time_series.csv', help='Path to the nrlmsise00 dataset')
     parser.add_argument('--goes_path', type=str, default=None, help='Path to the goes dataset')
+    parser.add_argument('--soho_path', type=str, default='../data/soho_data/soho_data.csv', help='Path to the soho dataset')
     parser.add_argument('--lag_minutes', type=int, default=500, help='Lag in minutes for the time series datasets, default is 500 minutes')
     parser.add_argument('--resolution_minutes', type=int, default=10, help='Resolution for the time series datasets, default is 10 minutes')
     parser.add_argument('--dropout', type=float, default=0.05, help='Dropout rate for the TFT model')
     parser.add_argument('--state_size', type=int, default=64, help='State size for the TFT model')
     parser.add_argument('--lstm_layers', type=int, default=2, help='Number of LSTM layers of the TFT')
     parser.add_argument('--attention_heads', type=int, default=4, help='Number of attention heads for the TFT')
-    parser.add_argument('--wandb_active', type=bool, default=True, help='Flag to activate/deactivate weights and biases')
+    parser.add_argument('--wandb_inactive', action='store_false', help='Flag to activate/deactivate weights and biases')
+    #parser.add_argument('--no-wandb_active', dest='wandb_active', action='store_false', help='Flag to activate/deactivate weights and biases')
     parser.add_argument('--features_to_exclude_thermo', type=str, default='', help='Comma-separated features to exclude from the thermo dataset, besides the ones that are already excluded by default (see default in the KarmanDataset class)')
     #celestrack__ap_average__,JB08__d_st_dt__[K],space_environment_technologies__f107_obs__,space_environment_technologies__f107_average__,space_environment_technologies__s107_obs__,space_environment_technologies__s107_average__,space_environment_technologies__m107_obs__,space_environment_technologies__m107_average__,space_environment_technologies__y107_obs__,space_environment_technologies__y107_average__
     opt = parser.parse_args()
@@ -101,11 +103,14 @@ def train():
                                         nrlmsise00_path=[None if opt.nrlmsise00_path=='None' else opt.nrlmsise00_path][0],
                                         omni_indices_path=[None if opt.omni_indices_path=='None' else opt.omni_indices_path][0],
                                         omni_magnetic_field_path=[None if opt.omni_magnetic_field_path=='None' else opt.omni_magnetic_field_path][0],
-                                        omni_solar_wind_path=[None if opt.omni_solar_wind_path=='None' else opt.omni_solar_wind_path][0],                                        
+                                        omni_solar_wind_path=[None if opt.omni_solar_wind_path=='None' else opt.omni_solar_wind_path][0],
+                                        soho_path=[None if opt.soho_path=='None' else opt.soho_path][0],
                                         lag_minutes_nrlmsise00=opt.lag_minutes,
                                         nrlmsise00_resolution=opt.resolution_minutes,
                                         lag_minutes_omni=opt.lag_minutes,
                                         omni_resolution=opt.resolution_minutes,
+                                        lag_minutes_soho=opt.lag_minutes,
+                                        soho_resolution=opt.resolution_minutes,
                                         features_to_exclude_thermo=features_to_exclude_thermo
                             )
     input_dimension=karman_dataset[0]['instantaneous_features'].shape[0]
@@ -126,6 +131,8 @@ def train():
         num_historical_numeric+=karman_dataset[0]['omni_solar_wind'].shape[1]
     if opt.nrlmsise00_path!='None':
         num_historical_numeric+=karman_dataset[0]['msise'].shape[1]
+    if opt.soho_path!='None':
+        num_historical_numeric+=karman_dataset[0]['soho'].shape[1]
 #    if opt.goes_path is not None:
 #        raise NotImplementedError('GOES dataset not implemented yet')
     
@@ -173,7 +180,14 @@ def train():
     test_month_idx = 2 * (idx_test_fold - 1)
     validation_month_idx = test_month_idx + 2
     print(test_month_idx,validation_month_idx)
-    karman_dataset._set_indices(test_month_idx=[test_month_idx], validation_month_idx=[validation_month_idx],custom={2024: {"validation":3,"test":4}})
+    karman_dataset._set_indices(test_month_idx=[test_month_idx], validation_month_idx=[validation_month_idx],custom={2001: {"validation":2,"test":3},
+                                                                                                                     2003: {"validation":9, "test":10},
+                                                                                                                     2005: {"validation":4, "test":5},
+                                                                                                                     2012: {"validation":8, "test":9},
+                                                                                                                     2013: {"validation":4, "test":5},
+                                                                                                                     2015: {"validation":2, "test":3},
+                                                                                                                     2022: {"validation":0, "test":1},
+                                                                                                                     2024: {"validation":3,"test":4}})
     train_dataset = karman_dataset.train_dataset()
     validation_dataset = karman_dataset.validation_dataset()
     test_dataset = karman_dataset.test_dataset()
@@ -270,6 +284,8 @@ def train():
                 historical_ts_numeric.append(el['omni_magnetic_field'][:,:-1,:])
             if opt.omni_solar_wind_path != 'None':
                 historical_ts_numeric.append(el['omni_solar_wind'][:,:-1,:])
+            if opt.soho_path != 'None':
+                historical_ts_numeric.append(el['soho'][:,:-1,:])
             if opt.nrlmsise00_path != 'None':
                 historical_ts_numeric.append(el['msise'][:,:-1,:])
             if len(historical_ts_numeric)>1:
@@ -399,6 +415,8 @@ def train():
                     historical_ts_numeric.append(el['omni_magnetic_field'][:,:-1,:])
                 if opt.omni_solar_wind_path != 'None':
                     historical_ts_numeric.append(el['omni_solar_wind'][:,:-1,:])
+                if opt.soho_path != 'None':
+                    historical_ts_numeric.append(el['soho'][:,:-1,:])
                 if opt.nrlmsise00_path != 'None':
                     historical_ts_numeric.append(el['msise'][:,:-1,:])
 
