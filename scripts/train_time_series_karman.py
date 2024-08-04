@@ -65,7 +65,7 @@ def train():
     parser.add_argument('--state_size', type=int, default=64, help='State size for the TFT model')
     parser.add_argument('--lstm_layers', type=int, default=2, help='Number of LSTM layers of the TFT')
     parser.add_argument('--attention_heads', type=int, default=4, help='Number of attention heads for the TFT')
-    parser.add_argument('--wandb_active', action='store_false', help='Flag to activate/deactivate weights and biases')
+    parser.add_argument('--wandb_inactive', action='store_true', help='Flag to activate/deactivate weights and biases')
     #parser.add_argument('--no-wandb_active', dest='wandb_active', action='store_false', help='Flag to activate/deactivate weights and biases')
     parser.add_argument('--features_to_exclude_thermo', type=str, default='', help='Comma-separated features to exclude from the thermo dataset, besides the ones that are already excluded by default (see default in the KarmanDataset class)')
     #celestrack__ap_average__,JB08__d_st_dt__[K],space_environment_technologies__f107_obs__,space_environment_technologies__f107_average__,space_environment_technologies__s107_obs__,space_environment_technologies__s107_average__,space_environment_technologies__m107_obs__,space_environment_technologies__m107_average__,space_environment_technologies__y107_obs__,space_environment_technologies__y107_average__
@@ -74,7 +74,7 @@ def train():
     if opt.nrlmsise00_path=='None':
         raise ValueError('NRLMSISE-00 path must be provided')
 
-    if opt.wandb_active == True:
+    if opt.wandb_inactive == False:
         wandb.init(project='karman', group='tft', config=vars(opt))
         # wandb.init(mode="disabled")
         if opt.run_name != '':
@@ -339,7 +339,7 @@ def train():
 
             #We compute the logged quantities
             #log to wandb:
-            if opt.wandb_active==True:
+            if opt.wandb_inactive==False:
                 wandb.log({ 'q_loss_train':q_loss.item(),
                             'nn_mse_train':loss_nn.item(),
                             'nrlmsise00_mse_train':loss_nrlmsise00,
@@ -371,7 +371,7 @@ def train():
             #if batch_idx%10:    
             #    print(f'minibatch: {batch_idx}/{len(train_loader)}, best minibatch loss till now: {best_loss_train:.4e}, NN MSE: {losses_per_minibatch['nn_mse_train'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_train'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_train'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_train'][-1]:.3f}', end='\r')
         #log to wandb:
-        if opt.wandb_active==True:
+        if opt.wandb_inactive==False:
                 
             wandb.log({     'q_loss_train_total':q_loss_total/len(train_loader),
                             'nn_mse_train_total':loss_total_nn/len(train_loader),
@@ -459,7 +459,7 @@ def train():
                 loss_nrlmsise00 = mse(target_nrlmsise00.detach().cpu().numpy(), target.detach().cpu().numpy())
                 #We compute the logged quantities
                 #log to wandb:
-                if opt.wandb_active==True:
+                if opt.wandb_inactive==False:
                     wandb.log({'q_loss_valid':q_loss.item(),
                                 'nn_mse_valid':loss_nn.item(),'nrlmsise00_mse_valid':loss_nrlmsise00,
                                 'nn_mape_valid':mean_absolute_percentage_error(rho_nn, rho_target),
@@ -490,7 +490,7 @@ def train():
                 #if batch_idx%10:    
                 #    print(f'minibatch: {batch_idx}/{len(validation_loader)}, best minibatch loss till now: {best_loss_valid:.4e}, NN MSE: {losses_per_minibatch['nn_mse_valid'][-1]:.10f}, nrlmsise00 MSE: {losses_per_minibatch['nrlmsise00_mse_valid'][-1]:.10f}, NN MAPE: {losses_per_minibatch['nn_mape_valid'][-1]:.3f}, nrlmsise00 MAPE: {losses_per_minibatch['nrlmsise00_mape_valid'][-1]:.3f}', end='\r')
             #log to wandb:
-            if opt.wandb_active==True:
+            if opt.wandb_inactive==False:
                     
                 wandb.log({     'q_loss_valid_total':q_loss_total/len(validation_loader),
                                 'nn_mse_valid_total':loss_total_nn/len(validation_loader),
