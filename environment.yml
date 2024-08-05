@@ -22,3 +22,4 @@ dependencies:
     - pyatmos
     - google-cloud-storage
     - google-cloud-pubsub
+    - tft-torch 
