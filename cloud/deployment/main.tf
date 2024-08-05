@@ -40,6 +40,9 @@ module "ingest_raw_satellite_data" {
   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
   INFLUXDB_URL   = var.INFLUXDB_URL
 
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
+
   # Generic variables
   service_account_email = var.service_account_email
   labels                = local.common_labels
@@ -68,6 +71,9 @@ module "process_satellite_data" {
   # environment variables
   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
   INFLUXDB_URL   = var.INFLUXDB_URL
+
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
 
   # Generic variables
   service_account_email = var.service_account_email
@@ -103,6 +109,9 @@ module "ingest_and_process_satellite_indices" {
   # environment variables
   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
   INFLUXDB_URL   = var.INFLUXDB_URL
+
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
 
   # Generic variables
   service_account_email = var.service_account_email
