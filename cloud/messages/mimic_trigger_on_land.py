@@ -52,6 +52,13 @@ def mimic_curl(json_data):
     )
     return response
 
+
+def trigger_http_function(function_url, data):
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(function_url, headers=headers, data=data)
+    print(response.status_code, response.text)
+
+
 def main():
 
     actual_landing_bucket = "satellite-data-landing"
@@ -73,10 +80,18 @@ def main():
         print(message)
 
         
-        message_bytes = json.dumps(message).encode("utf-8")
-        future = publisher.publish(topic_path, data=message_bytes)
-        print(future.result())
+        # message_bytes = json.dumps(message).encode("utf-8")
+        message_bytes = json.dumps(message)
 
+        # future = publisher.publish(topic_path, data=message_bytes)
+        # print(future.result())
+
+        # region = "us-central1"
+        # project_id = "hl-therm"
+        # function_name = "tf-process-satellite-data"
+        # function_url = f"https://{region}-{project_id}.cloudfunctions.net/{function_name}"
+
+        # trigger_http_function(function_url, message_bytes)
 
         # response = mimic_curl(message)
         # print(response)
