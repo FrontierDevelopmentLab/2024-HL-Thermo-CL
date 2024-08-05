@@ -153,8 +153,8 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     # Get the indices data
     df_indices = get_indices_file_from_bucket(storage_client, local_directory)
 
-    # initialze the db manager
-    db_manager = InfluxDBManager()
+    # # initialze the db manager
+    # db_manager = InfluxDBManager()
 
 
     # Now process those unzipped files (there is likely only one)
@@ -175,7 +175,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
         df = process_satellite_data_columns(df=df, satellite_name=satellite_subtype)
         df = post_process_satellite_data(df)
 
-        output_file_name = file.replace('txt', 'csv')  #  assumes txt file...
+        output_file_name = file.replace('txt', 'parquet')  #  assumes txt file...
 
         # # Upload the dataframe to the cloud
         # local_csv_file_name = f"{local_directory}/{output_file_name}"
@@ -207,7 +207,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
         # Store this local merged dataframe 
         local_merged_file_name = f"{local_directory}/{output_file_name}"
-        df_merged.to_csv(local_merged_file_name, index=False)
+        df_merged.to_parquet(local_merged_file_name, index=False)
 
         # Upload the merged file to the bucket
         remote_merged_file_name = f"{landing_file_base_path}/db_{output_file_name}"
@@ -218,5 +218,5 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
             metadata={"satellite": satellite}
         )
 
-        # Upload the data to influxdb
-        db_manager.upload_dataframe(df_merged)
+        # # Upload the data to influxdb
+        # db_manager.upload_dataframe(df_merged)
