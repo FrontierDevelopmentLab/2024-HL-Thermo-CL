@@ -2,6 +2,11 @@ from google.cloud import pubsub_v1
 import json
 from Satellites import SatelliteCollection
 
+"""
+Send messages to the ingest-raw-satellite-data topic in the hl-therm project.
+This will begin the data download process for the specified satellite.
+"""
+
 
 project_id = 'hl-therm'
 topic_name = 'tf-ingest-raw-satellite-data'

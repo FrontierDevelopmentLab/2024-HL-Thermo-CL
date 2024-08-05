@@ -12,14 +12,17 @@ class InfluxDBManager:
 
     def __init__(self):
 
-        credentials = self.load_credentials()
+        credentials = self._load_credentials()
 
         self._url = credentials['url']
         self._org = credentials['org']
         self._token = credentials['token']
         self._bucket = credentials['bucket']
+        TIMEOUT_SECONDS = 60
+        TIMEOUT_MS = TIMEOUT_SECONDS * 1000
         self.client = InfluxDBClient(
-            url=self._url, org=self._org, token=self._token)
+            url=self._url, org=self._org, token=self._token, timeout=TIMEOUT_MS)
+        
         print(f"Initialized influxdb client with bucket: {self._bucket}, org: {self._org}, url: {self._url}.")
 
 
@@ -39,7 +42,7 @@ class InfluxDBManager:
         }
 
 
-    def load_credentials(self) -> dict[str]:
+    def _load_credentials(self) -> dict[str]:
         if "IS_CLOUD" in os.environ: # note this env variable defined in terraform pubsub-cloudfunction main.tf
             return self._load_credentials_cloud()
         else:
@@ -60,24 +63,28 @@ class InfluxDBManager:
         result = query_api.query(query=query, org=self._org)
         return result
     
-    def query_range(self, start, stop, columns) -> pd.DataFrame:
+    def query_single_table_daterange(self, start, stop, columns) -> pd.DataFrame:
 
         # Make sure time field is in the columns, otherwise add it.
         if "_time" not in columns:
             columns = ["_time"] + columns
 
-        query= f'''
-from (bucket: "{self.bucket}")
+        query= f'''from (bucket: "{self._bucket}") 
 |> range(start: {start}, stop: {stop})
 |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
 |> keep(columns: {columns})
-'''
+'''.replace("\\n", "").replace("'","\"")
+        print(query)
+        print(query[192:])
 
         df = self.client.query_api().query_data_frame(query)
+
+        df = df.drop(columns=["result", "table"])
+
         return df
 
     # def get_available_measurements(self):
-    #     query = f'import "influxdata/influxdb/schema" schema.measurements(bucket: "{self.bucket}")'
+    #     query = f'import "influxdata/influxdb/schema" schema.measurements(bucket: "{self._bucket}")'
     #     print(f"Querying: {query}")
     #     return self.query(query)
 
@@ -118,12 +125,3 @@ from (bucket: "{self.bucket}")
     def close(self):
         self.client.close()
 
-
-def main():
-
-    influxdb = InfluxDBManager()
-    print(influxdb.health())
-
-
-if __name__ == "__main__":
-    main()
