@@ -68,3 +68,7 @@ variable "INFLUXDB_TOKEN" {
 variable "INFLUXDB_URL" {
   description = "url for influxdb"
 }
+
+variable "google_vpc_access_connector_id" {
+  description = "Statically defined VPC Access Connector (created outside terraform)"
+}

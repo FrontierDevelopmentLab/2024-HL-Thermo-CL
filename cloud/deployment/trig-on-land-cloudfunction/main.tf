@@ -55,6 +55,12 @@ resource "google_cloudfunctions2_function" "trigger_on_land_function" {
     }
     ingress_settings      = "ALLOW_INTERNAL_ONLY"
     service_account_email = var.service_account_email
+    vpc_access {
+      # Use the VPC Connector
+      connector = var.google_vpc_access_connector_id
+      # all egress from the service should go through the VPC Connector
+      egress = "ALL_TRAFFIC"
+    }
   }
 
   # 
