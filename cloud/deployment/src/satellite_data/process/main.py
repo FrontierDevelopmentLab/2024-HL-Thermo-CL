@@ -108,6 +108,8 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
     data = cloud_event.data
 
+    print(f"trig on land data recieved: {data}")
+
     # Extract data from the CloudEvent
     # event_id = cloud_event["id"]
     # event_type = cloud_event["type"]

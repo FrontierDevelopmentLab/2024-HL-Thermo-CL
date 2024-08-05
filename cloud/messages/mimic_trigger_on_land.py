@@ -4,7 +4,7 @@ Script to mimc the trigger-on-land functionality, kickstarted when a file lands 
 """
 
 from GCloudIO import gcloud_ls
-from datetime import datetime
+import datetime
 import json
 from google.cloud import pubsub_v1
 import argparse
@@ -15,7 +15,7 @@ import requests
 
 def create_a_message(landing_file: str, actual_landing_bucket: str, contentType: str):
 
-    now = datetime.utcnow().isoformat(sep='T', timespec='milliseconds')
+    now = datetime.datetime.now(datetime.UTC).isoformat(sep='T', timespec='milliseconds')
     now = now + 'Z'
 
     message_base = {
@@ -52,31 +52,36 @@ def mimic_curl(json_data):
     )
     return response
 
-def main(year, month, debug=False):
+def main():
 
-    actual_landing_bucket = "us-fdlx-ard-landing-hmi-tempoary"
+    actual_landing_bucket = "satellite-data-landing"
     contentType = "application/zip"
 
 
-    project_id = 'us-fdl-x'
-    topic_name = 'eventarc-us-central1-us-fdl-x-ard-terraform-trig-on-land-calib-hmi-090024-626'
-    topic_mame = "us-fdl-x-ard-terraform-trig-on-land-calib-hmi"
+    project_id = 'hl-therm'
+    topic_name = 'eventarc-us-central1-tf-process-satellite-data-351031-719'
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(project_id, topic_name)
 
     # Get a list of files from the bucket
-    file_list = get_one_month_files(year, month, actual_landing_bucket)
-    print(f"Found {len(file_list)} files in {actual_landing_bucket} for {year}/{month}")
+    # file_list = get_one_month_files(year, month, actual_landing_bucket)
+    prefix = f"tudelft/version_02/GRACE_data"
+    file_list = gcloud_ls(actual_landing_bucket, prefix=prefix)
+    print(f"Found {len(file_list)} files in {actual_landing_bucket} for {prefix}")
     for landing_file in file_list:
         message = create_a_message(landing_file, actual_landing_bucket, contentType)
         print(message)
 
         
         message_bytes = json.dumps(message).encode("utf-8")
-        # future = publisher.publish(topic_path, data=message_bytes)
-        # print(future.result())
+        future = publisher.publish(topic_path, data=message_bytes)
+        print(future.result())
 
 
-        response = mimic_curl(message)
-        print(response)
+        # response = mimic_curl(message)
+        # print(response)
         break
+
+
+if __name__ == "__main__":
+    main()

@@ -10,7 +10,7 @@ class GCloudIO:
         self._destination_bucket_name = destination_bucket_name
 
         self.source_bucket = self.client.bucket(source_bucket_name)
-        self.destination_bucket = self.clicloud/messages/GCloudIO.py ent.bucket(destination_bucket_name)
+        self.destination_bucket = self.client.bucket(destination_bucket_name)
         self.debug = debug
 
     def copy_file(self, source_file_name, destination_file_name):
