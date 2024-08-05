@@ -28,6 +28,25 @@ class CloudEventSpoof:
 
 from main import hello_pubsub
 
+# CHAMP
 data_path = "/version_02/CHAMP_data"
-satellite = "CHAMP"
+satellite = "CHAMP" 
+
+# GRACE A and B
+data_path = "/version_02/GRACE_data"
+satellite = "GRACE"
+
+# GRACE C
+data_path = "/version_02/GRACE-FO_data"
+satellite = "GRACE"
+
+# SWARM
+data_path = "/version_01/Swarm_data"
+satellite = "SWARM"
+
+# GOCE
+data_path = "/version_01/GOCE_data"
+satellite = "GOCE"
+
+
 hello_pubsub(CloudEventSpoof("satellite-data-landing", satellite=satellite, data_path=data_path))
