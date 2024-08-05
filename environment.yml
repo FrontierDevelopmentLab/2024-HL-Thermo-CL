@@ -14,8 +14,12 @@ dependencies:
   - pyfiglet
   - termcolor
   - wandb
+  - pyarrow
+  - influxdb-client
   - pip:
     - nrlmsise00
     - spaceweather
     - pyatmos
+    - google-cloud-storage
+    - google-cloud-pubsub
     - tft-torch 
