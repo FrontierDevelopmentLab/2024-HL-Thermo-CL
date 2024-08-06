@@ -5,6 +5,7 @@ import zipfile
 from karman.io import StorageClient
 from karman.io import InfluxDBManager
 import os
+import time
 import pandas as pd
 
 # from karman.scripts.process_tudelft_thermo import process_one_swarm_file, process_one_champ_file, process_one_goce_file, process_one_grace_file
@@ -133,11 +134,15 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     print(metadata)
     satellite = metadata["satellite"]
 
+    # Collect all files that are downloaded onto the local machine
+    all_locally_downloaded_files = []
+
     #  zip file lands on bucket, copy from bucket to local
     storage_client.download_file_from_bucket(
         landing_bucket_name, input_file_path, local_file_name)
 
     pre_unzip_files = get_files_in_directory(local_directory)
+    all_locally_downloaded_files += pre_unzip_files
 
     # unzip the file
     unzip_file(local_file_name, local_file_name.rsplit('/', 1)[0])
@@ -149,6 +154,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
     # get the files that were unzipped
     unzipped_files = list(set(post_unzip_files) - set(pre_unzip_files))
+    all_locally_downloaded_files += unzipped_files
 
     # Get the indices data
     df_indices = get_indices_file_from_bucket(storage_client, local_directory)
@@ -205,9 +211,14 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
         df_merged = post_process_merged_df(df_merged)
 
+        df_merged = df_merged.drop_duplicates()
+
         # Store this local merged dataframe 
         local_merged_file_name = f"{local_directory}/{output_file_name}"
         df_merged.to_parquet(local_merged_file_name, index=False)
+
+
+        all_locally_downloaded_files.append(local_merged_file_name)
 
         # Upload the merged file to the bucket
         remote_merged_file_name = f"{landing_file_base_path}/db_{output_file_name}"
@@ -220,3 +231,9 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
         # # Upload the data to influxdb
         # db_manager.upload_dataframe(df_merged)
+
+
+    # Delete all files stored on this machine
+    time.sleep(10)
+    for file in all_locally_downloaded_files:
+        os.remove(file)

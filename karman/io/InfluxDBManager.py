@@ -120,6 +120,10 @@ class InfluxDBManager:
 
         if field_columns is None:
             field_columns = df.columns.tolist()
+
+        # Make sure field columns is sorted
+        field_columns = sorted(field_columns)
+
         self.write(data=df, measurement=measurement, field_columns=field_columns)
 
     def close(self):
