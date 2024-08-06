@@ -58,7 +58,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     
     # read the dataframe
 
-    df = pd.read_csv(local_file_name)
+    df = pd.read_parquet(local_file_name)
 
     # initialze the db manager
     db_manager = InfluxDBManager()
