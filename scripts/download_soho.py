@@ -6,10 +6,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import datetime
 
 
+date = "2022-01-01"
+a_date = datetime.datetime.strptime(date, "%Y-%m-%d")
+
 class SohoDownloader:
-    def __init__(self, output_dir: str, base_url: str):
+    def __init__(self, output_dir: str):
+        self.base_url = "https://lasp.colorado.edu/eve/data_access/eve_data/lasp_soho_sem_data/long/15_sec_avg/"
         self.output_dir = output_dir
-        self.base_url = base_url
 
     def download_one_year_data(self, year: int):
 
@@ -30,7 +33,7 @@ class SohoDownloader:
             f"{self.base_url}{year}/",
         ]
 
-        subprocess.run(wget_command, cwd=directory, stdout=subprocess.DEVNULL)
+        subprocess.run(wget_command, cwd=directory, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return year
 
     def download_data_parallel(self, years: list[int]):
@@ -45,12 +48,10 @@ def get_all_years() -> list[int]:
     """
     Get all years from 2000 until the present. 
     """
+    START_YEAR = 2000
     now = datetime.datetime.now()
     this_year = now.year
-    print(now, this_year)
-
-    all_years = list(range(2000, this_year+1))
-    print(all_years)
+    all_years = list(range(START_YEAR, this_year+1))
     return all_years
 
 def main():
