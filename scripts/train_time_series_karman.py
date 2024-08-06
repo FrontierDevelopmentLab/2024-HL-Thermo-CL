@@ -50,6 +50,7 @@ def train():
     parser.add_argument('--num_workers', type=int, default=0, help='Number of workers for the dataloader')
     parser.add_argument('--min_date', type=str, default='2000-07-29 00:59:47', help='Min date to consider for the dataset')
     parser.add_argument('--max_date', type=str, default='2024-05-31 23:59:32', help='Max date to consider for the dataset')
+    parser.add_argument('--model_type', type=str, default='tft', choices=['tft','lstm'],help='Time series model to be used')
     #parser.add_argument('--hidden_layer_dim', type=int, default=48, help='Hidden layer dimension')
     #parser.add_argument('--hidden_layers', type=int, default=3, help='Number of hidden layers')
     #parser.add_argument('--train_type', type=str, default='log_exp_residual', choices= ['log_density', 'log_exp_residual'], help='Training type, currently supports either log_density or log_exp_residual')
@@ -62,9 +63,11 @@ def train():
     parser.add_argument('--lag_minutes', type=int, default=500, help='Lag in minutes for the time series datasets, default is 500 minutes')
     parser.add_argument('--resolution_minutes', type=int, default=10, help='Resolution for the time series datasets, default is 10 minutes')
     parser.add_argument('--dropout', type=float, default=0.05, help='Dropout rate for the TFT model')
-    parser.add_argument('--state_size', type=int, default=64, help='State size for the TFT model')
-    parser.add_argument('--lstm_layers', type=int, default=2, help='Number of LSTM layers of the TFT')
+    parser.add_argument('--state_size', type=int, default=64, help='State size for the TFT model or the LSTM model, depending which one is chosen as model_type')
+    parser.add_argument('--lstm_layers', type=int, default=2, help='Number of LSTM layers of the TFT or the LSTM model, depending which one is chosen as model_type')
     parser.add_argument('--attention_heads', type=int, default=4, help='Number of attention heads for the TFT')
+    parser.add_argument('--ffnn_size', type=int, default=64, help='Number of FFNN neurons of the LSTM model')
+    parser.add_argument('--ffnn_layers', type=int, default=3, help='Number of FFNN layers of the LSTM model')
     parser.add_argument('--wandb_inactive', action='store_true', help='Flag to activate/deactivate weights and biases')
     #parser.add_argument('--no-wandb_active', dest='wandb_active', action='store_false', help='Flag to activate/deactivate weights and biases')
     parser.add_argument('--features_to_exclude_thermo', type=str, default='', help='Comma-separated features to exclude from the thermo dataset, besides the ones that are already excluded by default (see default in the KarmanDataset class)')
@@ -138,42 +141,51 @@ def train():
     
     if num_historical_numeric==0:
         raise ValueError('No historical numeric data found in the dataset')
-    
-    data_props = {'num_historical_numeric': num_historical_numeric,
-                'num_static_numeric': input_dimension,
-                'num_future_numeric': 1,
-                }
-
-    configuration = {
-                    'model':
-                        {
-                            'dropout': opt.dropout,
-                            'state_size': opt.state_size,
-                            'output_quantiles': [0.5],
-                            'lstm_layers': opt.lstm_layers,
-                            'attention_heads': opt.attention_heads,
-                        },
-                    'task_type': 'regression',
-                    'target_window_start': None,
-                    'data_props': data_props,
+    if opt.model_type=='tft':
+        data_props = {'num_historical_numeric': num_historical_numeric,
+                    'num_static_numeric': input_dimension,
+                    'num_future_numeric': 1,
                     }
 
-    # initialize tft_model
-    tft_model = tft.TemporalFusionTransformer(OmegaConf.create(configuration))
-    # weight init
-    tft_model.apply(karman.nn.weight_init)
-    tft_model.to(device)
+        configuration = {
+                        'model':
+                            {
+                                'dropout': opt.dropout,
+                                'state_size': opt.state_size,
+                                'output_quantiles': [0.5],
+                                'lstm_layers': opt.lstm_layers,
+                                'attention_heads': opt.attention_heads,
+                            },
+                        'task_type': 'regression',
+                        'target_window_start': None,
+                        'data_props': data_props,
+                        }
+        # initialize TFT model 
+        ts_karman_model = tft.TemporalFusionTransformer(OmegaConf.create(configuration))
+        # weight init
+        ts_karman_model.apply(karman.nn.weight_init)
+    elif opt.model_type=='lstm':
+        # initialize LSTM model
+        ts_karman_model=karman.nn.LSTMDensityPredictor(input_size_static=input_dimension,
+                                input_size_timedependent=num_historical_numeric,
+                                lstm_depth=opt.lstm_layers,
+                                lstm_size=opt.state_size,
+                                ffnn_hidden_layer_dims=[opt.ffnn_size]*opt.ffnn_layers,
+                                output_size_timedependent=opt.state_size,
+                                dropout_lstm=opt.dropout,
+                                dropout_ffnn=opt.dropout)
+
+    ts_karman_model.to(device)
     
     #if the model path is passed, load from there:
     if opt.model_path is not None:
-        tft_model.load_state_dict(torch.load(opt.model_path))
+        ts_karman_model.load_state_dict(torch.load(opt.model_path))
 
-    num_params=sum(p.numel() for p in tft_model.parameters() if p.requires_grad)
+    num_params=sum(p.numel() for p in ts_karman_model.parameters() if p.requires_grad)
     print(f'Karman model num parameters: {num_params}')
     
-    # create batch as an example
-    historical_steps = karman_dataset[0]['msise'].shape[0]-1
-    future_steps = 1
+    #historical_steps = karman_dataset[0]['msise'].shape[0]-1
+    #future_steps = 1
 
     #Train, validation, test splits:
     idx_test_fold=2
@@ -201,7 +213,7 @@ def train():
     # Here we set the optimizer
     #optimizer:
     optimizer = optim.Adam(
-        filter(lambda p: p.requires_grad, list(tft_model.parameters())),
+        filter(lambda p: p.requires_grad, list(ts_karman_model.parameters())),
         lr=opt.lr,
         amsgrad=True,
     )
@@ -252,8 +264,8 @@ def train():
                     'q_loss_valid':[],'q_risk_valid':[],
                     'nn_mse_train':[],'nrlmsise00_mse_train':[],'nn_mape_train':[],'nrlmsise00_mape_train':[],
                     'nn_mse_valid':[],'nrlmsise00_mse_valid':[],'nn_mape_valid':[],'nrlmsise00_mape_valid':[]}
-
-    quantiles_tensor = torch.tensor(configuration["model"]["output_quantiles"]).to(device)
+    if opt.model_type=='tft':    
+        quantiles_tensor = torch.tensor(configuration["model"]["output_quantiles"]).to(device)
 
     best_loss_total_train = np.inf
     best_loss_train = np.inf
@@ -274,7 +286,7 @@ def train():
         mape_total_nn=0.
         mape_total_nrlmsise00=0.
         #we set the model in training mode:
-        tft_model.train()
+        ts_karman_model.train()
         for batch_idx,el in enumerate(train_loader):
             #Just extracting the historical and future time series and making sure to concatenate in case there are multiple datasets
             historical_ts_numeric=[]
@@ -306,19 +318,24 @@ def train():
             #let's store the normalized and unnormalized target density:
             target=el['target'].to(device)
             rho_target=el['ground_truth'].detach().cpu().numpy()
-            batch_out=tft_model(minibatch)
-            #now the quantiles:
-            predicted_quantiles = batch_out['predicted_quantiles']#it's of shape batch_size x future_steps x num_quantiles
-            target_nn_median=predicted_quantiles[:, :, 0].squeeze()
-            q_loss, q_risk, _ = tft_loss.get_quantiles_loss_and_q_risk(outputs=predicted_quantiles,
-                                                                        targets=target,
-                                                                        desired_quantiles=quantiles_tensor)
+            if opt.model_type=='tft':
+                batch_out=ts_karman_model(minibatch)                    
+                #now the quantiles:
+                predicted_quantiles = batch_out['predicted_quantiles']#it's of shape batch_size x future_steps x num_quantiles
+                target_nn_median=predicted_quantiles[:, :, 0].squeeze()
+                q_loss, q_risk, _ = tft_loss.get_quantiles_loss_and_q_risk(outputs=predicted_quantiles,
+                                                                            targets=target,
+                                                                            desired_quantiles=quantiles_tensor)
+            elif opt.model_type=='lstm':
+                target_nn_median=ts_karman_model(minibatch).squeeze()
+                q_loss=torch.tensor(0.)
+                q_risk=torch.tensor(0.)
             #now the normalized and unnormalized NN-predicted density:
             #if opt.train_type=='log_exp_residual':
-            #    out_nn=torch.tanh(tft_model(minibatch).squeeze())
+            #    out_nn=torch.tanh(ts_karman_model(minibatch).squeeze())
             #    target_nn=karman_dataset.scale_density(el['exponential_atmosphere'].to(device))+out_nn
             #else:
-            #    target_nn=tft_model(minibatch).squeeze()
+            #    target_nn=ts_karman_model(minibatch).squeeze()
             rho_nn=karman_dataset.unscale_density(target_nn_median.detach().cpu()).numpy()
             #finally the NRLMSISE-00 ones:
             rho_nrlmsise00=el['nrlmsise00'].detach().cpu().numpy()
@@ -405,7 +422,7 @@ def train():
         mape_total_nn=0.
         mape_total_nrlmsise00=0.
         #let's switch the model to evaluation mode:
-        tft_model.eval()
+        ts_karman_model.eval()
         with torch.no_grad():
             for batch_idx,el in enumerate(validation_loader):
                 historical_ts_numeric=[]
@@ -437,19 +454,25 @@ def train():
                 #let's store the normalized and unnormalized target density:
                 target=el['target'].to(device)
                 rho_target=el['ground_truth'].detach().cpu().numpy()
-                batch_out=tft_model(minibatch)
-                #now the quantiles:
-                predicted_quantiles = batch_out['predicted_quantiles']
-                target_nn_median=predicted_quantiles[:, :, 0].squeeze()
-                q_loss, q_risk, _ = tft_loss.get_quantiles_loss_and_q_risk(outputs=predicted_quantiles,
-                                                                            targets=target,
-                                                                            desired_quantiles=quantiles_tensor)
+                if opt.model_type=='tft':
+                        
+                    batch_out=ts_karman_model(minibatch)
+                    #now the quantiles:
+                    predicted_quantiles = batch_out['predicted_quantiles']
+                    target_nn_median=predicted_quantiles[:, :, 0].squeeze()
+                    q_loss, q_risk, _ = tft_loss.get_quantiles_loss_and_q_risk(outputs=predicted_quantiles,
+                                                                                targets=target,
+                                                                                desired_quantiles=quantiles_tensor)
+                elif opt.model_type=='lstm':
+                    target_nn_median=ts_karman_model(minibatch).squeeze()
+                    q_loss=torch.tensor(0.)
+                    q_risk=torch.tensor(0.)
                 #now the normalized and unnormalized NN-predicted density:
                 #if opt.valid_type=='log_exp_residual':
-                #    out_nn=torch.tanh(tft_model(minibatch).squeeze())
+                #    out_nn=torch.tanh(ts_karman_model(minibatch).squeeze())
                 #    target_nn=karman_dataset.scale_density(el['exponential_atmosphere'].to(device))+out_nn
                 #else:
-                #    target_nn=tft_model(minibatch).squeeze()
+                #    target_nn=ts_karman_model(minibatch).squeeze()
                 rho_nn=karman_dataset.unscale_density(target_nn_median.detach().cpu()).numpy()
                 #finally the NRLMSISE-00 ones:
                 rho_nrlmsise00=el['nrlmsise00'].detach().cpu().numpy()
@@ -515,7 +538,7 @@ def train():
             import os
             if not os.path.exists('../models'):
                 os.makedirs('../models')
-            torch.save(tft_model.state_dict(), f'../models/tft_model_tft_{opt.run_name}_valid_mape_{losses_total['nn_mape_valid'][-1]:.3f}_params_{num_params}.torch')
+            torch.save(ts_karman_model.state_dict(), f'../models/ts_karman_model_{opt.model_type}_{opt.run_name}_valid_mape_{losses_total['nn_mape_valid'][-1]:.3f}_params_{num_params}.torch')
             best_loss_total_valid=losses_total['nn_mse_valid'][-1]
 
 if __name__ == "__main__":
