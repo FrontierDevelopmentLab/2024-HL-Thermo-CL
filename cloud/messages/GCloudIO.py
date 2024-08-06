@@ -16,8 +16,7 @@ class GCloudIO:
     def copy_file(self, source_file_name, destination_file_name):
 
         if self.debug:
-            print(f"copying file from source bucket {
-                  self._source_bucket_name} to desination bucket {self._destination_bucket_name}")
+            print(f"copying file from source bucket {self._source_bucket_name} to desination bucket {self._destination_bucket_name}")
         # Initialize the Google Cloud Storage client
         # Get the source bucket and blob (file) objects
         source_blob = self.source_bucket.blob(source_file_name)
