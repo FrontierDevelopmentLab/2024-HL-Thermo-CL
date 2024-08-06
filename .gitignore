@@ -1,6 +1,5 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-karman/__pycache__
 *.py[cod]
 *$py.class
 
@@ -21,7 +20,6 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -96,8 +94,6 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
@@ -158,15 +154,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-
-.vscode
-
-*csv
-*gif
-keys.json
-wandb
-data_directory/*
-data/
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
