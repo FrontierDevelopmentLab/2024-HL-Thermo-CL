@@ -23,8 +23,9 @@ def main():
 
 
     # Get a list of files from the bucket
-    # file_list = get_one_month_files(year, month, actual_landing_bucket)
     prefix = f"tudelft/version_02/GRACE_data"
+    prefix = f"tudelft/version_02/CHAMP_data"
+
     file_list = gcloud_ls(actual_landing_bucket, prefix=prefix)
 
     print(f"Found {len(file_list)} files in {actual_landing_bucket} for {prefix}")
