@@ -83,6 +83,39 @@ module "process_satellite_data" {
 
 }
 
+module "upload_satellite_data" {
+
+  source        = "./trig-on-land-cloudfunction"
+  function_name = "tf-upload-satellite-data"
+
+  trigger_bucket_name = "satellite-data-process"
+
+
+  function_entrypoint_name = "triggered_on_file_landing_in_bucket"
+  max_instance_count       = 100
+  available_memory         = "1024M"
+
+
+  # Place where source code is stored
+  function_bucket_name = google_storage_bucket.function_bucket.name
+  zip_file_name        = "function-source-satellite-upload.zip"
+  code_source_dir      = "src/satellite_data/upload"
+
+  # environment variables
+  INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
+  INFLUXDB_URL   = var.INFLUXDB_URL
+
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
+
+  # Generic variables
+  service_account_email = var.service_account_email
+  labels                = local.common_labels
+  region                = var.region
+  project_id            = var.project_id
+
+}
+
 module "ingest_and_process_satellite_indices" {
 
   source = "./pubsub-cloudfunction"
