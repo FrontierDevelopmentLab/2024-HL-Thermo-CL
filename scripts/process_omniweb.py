@@ -1,9 +1,11 @@
 import os
 import pandas as pd
 from io import StringIO
-from tqdm import tqdm
 import datetime
 import numpy as np
+
+# Suppress the SettingWithCopyWarning
+pd.options.mode.chained_assignment = None
 
 def create_flag(data,column_nan):
     """
@@ -113,7 +115,10 @@ def define_dic_invalid_and_names():
 
 
 
-def process_one_omniweb_file(file_path, output_dir, dic_invalid, dict_names):
+def process_one_omniweb_file(file_path):
+
+    dic_invalid, dict_names = define_dic_invalid_and_names()
+
 
     # Read the file, skipping the initial non-data rows
     with open(file_path, 'r') as file:
@@ -203,14 +208,11 @@ def main():
 
     os.makedirs(output_dir,exist_ok=True)
 
-    # Suppress the SettingWithCopyWarning
-    pd.options.mode.chained_assignment = None
-    dic_invalid, dict_names = define_dic_invalid_and_names()
 
 
-    for file_path in tqdm(files):
+    for file_path in files:
             
-        data_omni_magnetic_field, data_omni_solar_wind_velocity, data_omni_indices = process_one_omniweb_file(file_path,output_dir,dic_invalid,dict_names)
+        data_omni_magnetic_field, data_omni_solar_wind_velocity, data_omni_indices = process_one_omniweb_file(file_path=file_path)
 
         #we can now save them:
         file_date = file_path.split('_')[-2]+'_'+file_path.split('_')[-1].split('.')[0]
