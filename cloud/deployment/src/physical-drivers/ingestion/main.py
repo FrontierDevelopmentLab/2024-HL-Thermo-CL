@@ -4,9 +4,10 @@ import json
 import os
 from karman.io import StorageClient
 from glob import glob
+from datetime import datetime
 
 from download_soho import SohoDownloader, get_all_years
-from download_omniweb import download_omniweb_data_one_year
+from download_omniweb import download_omniweb_data_one_month
 
 
 @functions_framework.cloud_event
@@ -33,17 +34,27 @@ def hello_pubsub(cloud_event):
     if data_source == "SOHO":
         ingest_soho(output_bucket)
     elif data_source == "OMNIWEB":
-        ingest_omniweb(output_bucket)
+
+        # For omniweb, the message can have the optional "year" and "month" fields
+        year = message.get("year", None)
+        month = message.get("month", None)
+        ingest_omniweb(output_bucket, year, month)
     else:
         raise ValueError(f"Unknown data source: {data_source}")
 
+def get_previous_month():
+    return datetime.now().month - 1
 
-def ingest_omniweb(output_bucket):
+def ingest_omniweb(output_bucket: str, year: int | None, month: int|None):
 
-    this_year = get_all_years()[-1]
+    if year is None:
+        year = get_all_years()[-1]
+
+    if month is None:
+        month = get_previous_month()
 
     output_dir = "/shared/raw/omniweb"
-    downloaded_file = download_omniweb_data_one_year(this_year, output_dir)
+    downloaded_file = download_omniweb_data_one_month(year=year, month=month, omiweb_data_dir=output_dir)
     downloaded_files = [downloaded_file]
     print(downloaded_files)
 
@@ -56,23 +67,37 @@ def ingest_omniweb(output_bucket):
         storage_client.upload_file_to_bucket(
             destination_bucket_name=output_bucket,
             source_file_name=local_file,
-            new_file_name=f"OMNIWEB/{local_file.split('/')[-1]}",
+            new_file_name=f"OMNIWEB/{year}/{local_file.split('/')[-1]}",
             metadata={
                 "data_source": "OMNIWEB",
-                "satellite": "OMNIWEB"
+                "satellite": "OMNIWEB",
+                "year": year,
+                "month": month
                 }
         )
+
+    # delete the locally downloaded files
+    for local_file in downloaded_files:
+        os.remove(local_file)
+
 
     
 
 def ingest_soho(output_bucket):
 
     """
-    Will download the latest year's SOHO data to the local machine, and then upload those files to the cloud.
+    Will download the latest month's SOHO data to the local machine, and then upload those files to the cloud.
     """
 
     # Get the years to download, we probably only ever want the most recent data
     this_year = get_all_years()[-1]
+
+    # get the current month in "MM" format
+    this_month_MM_str = datetime.now().strftime("%m")
+
+    # get this year into "YY" format
+    this_year_YY_str = f"{this_year:02}"
+
 
     output_dir = "/shared/raw/soho"
 
@@ -80,7 +105,7 @@ def ingest_soho(output_bucket):
     downloader.download_data_parallel([this_year])
 
     #  find all the files that have been downloaded
-    downloaded_files = glob(f"{output_dir}/{this_year}/*")
+    downloaded_files = glob(f"{output_dir}/{this_year}/{this_year_YY_str}_{this_month_MM_str}_*")
 
     # remove any "robots" file
     downloaded_soho_files = [x for x in downloaded_files if "robots" not in x]
@@ -110,6 +135,11 @@ def ingest_soho(output_bucket):
             new_file_name=f"SOHO/{this_year}/{local_file.split('/')[-1]}",
             metadata={
                 "data_source": "SOHO",
-                "satellite": "SOHO"
+                "satellite": "SOHO",
+                "year": this_year,
                 }
         )
+
+    # remove the locally downloaded files
+    for local_file in downloaded_soho_files:
+        os.remove(local_file)

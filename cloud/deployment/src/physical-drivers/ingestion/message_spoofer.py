@@ -4,9 +4,9 @@ import base64
 
 
 class CloudEventSpoof:
-    def __init__(self, landing_bucket_name, data_source: str) -> None:
+    def __init__(self, landing_bucket_name, data_source: str, year: int, month: int) -> None:
 
-        message_data = {"data_source": data_source, "bucket": landing_bucket_name,}
+        message_data = {"data_source": data_source, "bucket": landing_bucket_name, "year": year, "month": month}
         message_data = json.dumps(message_data)
         encoded_data = base64.b64encode(message_data.encode('utf-8')).decode('utf-8')
 
@@ -29,7 +29,13 @@ class CloudEventSpoof:
 from main import hello_pubsub
 
 output_bucket = "physical-drivers-landing"
-data_source = "SOHO"
-# data_source = "OMNIWEB"
+# data_source = "SOHO"
+data_source = "OMNIWEB"
 
-hello_pubsub(CloudEventSpoof(output_bucket, data_source=data_source))
+
+for year in range(2009, 2024+1):
+    for month in range(1, 12+1):
+        if year == 2024 and month > 7:
+            break
+
+        hello_pubsub(CloudEventSpoof(output_bucket, data_source=data_source, year=year, month=month))
