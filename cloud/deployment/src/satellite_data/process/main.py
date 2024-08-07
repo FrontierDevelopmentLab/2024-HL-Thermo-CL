@@ -33,7 +33,7 @@ def get_satellite_subtype(file_name, satellite) -> str:
     if satellite == "CHAMP":
         return "champ"
     elif satellite == "SWARM":
-        {"SA": "swarm_a", "SB": "swarm_b", "SC": "swarm_c"}
+        remap = {"SA": "swarm_a", "SB": "swarm_b", "SC": "swarm_c"}
         if tokens[0] in remap:
             return remap[tokens[0]]
         else:
@@ -139,22 +139,26 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
     #  zip file lands on bucket, copy from bucket to local
     storage_client.download_file_from_bucket(
-        landing_bucket_name, input_file_path, local_file_name)
+        landing_bucket_name, input_file_path, local_file_name, debug=True)
 
     pre_unzip_files = get_files_in_directory(local_directory)
-    all_locally_downloaded_files += pre_unzip_files
 
     # unzip the file
     unzip_file(local_file_name, local_file_name.rsplit('/', 1)[0])
 
     post_unzip_files = get_files_in_directory(local_directory)
 
+    # delete the zip file
+    print(f"Deleting the original zip file: {local_file_name}")
+    os.remove(local_file_name)
+
     # print what is in this directory
-    print(f"Files in the directory {local_directory} after unzip are: {pre_unzip_files}")
+    print(f"Files in the directory {local_directory} after unzip are: {post_unzip_files}")
 
     # get the files that were unzipped
     unzipped_files = list(set(post_unzip_files) - set(pre_unzip_files))
-    all_locally_downloaded_files += unzipped_files
+    all_locally_downloaded_files += [f"{local_directory}/{x}" for x in unzipped_files]
+
 
     # Get the indices data
     df_indices = get_indices_file_from_bucket(storage_client, local_directory)
@@ -220,6 +224,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
         all_locally_downloaded_files.append(local_merged_file_name)
 
+
         # Upload the merged file to the bucket
         remote_merged_file_name = f"{landing_file_base_path}/db_{output_file_name}"
         storage_client.upload_file_to_bucket(
@@ -235,5 +240,6 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
     # Delete all files stored on this machine
     time.sleep(10)
+    print(f"Removing locally downloaded files: {all_locally_downloaded_files}")
     for file in all_locally_downloaded_files:
         os.remove(file)
