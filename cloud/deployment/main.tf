@@ -88,7 +88,7 @@ module "upload_satellite_data" {
   source        = "./trig-on-land-cloudfunction"
   function_name = "tf-upload-satellite-data"
 
-  trigger_bucket_name = "satellite-data-process"
+  trigger_bucket_name = "satellite-data-processed"
 
 
   function_entrypoint_name = "triggered_on_file_landing_in_bucket"
