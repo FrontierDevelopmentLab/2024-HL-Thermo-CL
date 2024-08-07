@@ -142,8 +142,8 @@ class StorageClient:
             print(f"Downloading file {source_bucket_name}/{bucket_file_name} to {local_file_name}")
         source_bucket = self._get_bucket(source_bucket_name)
         source_blob = source_bucket.get_blob(bucket_file_name)
-        blob_metadata = source_blob.metadata
         source_blob.download_to_filename(local_file_name)
+        blob_metadata = source_blob.metadata
         return blob_metadata
 
 
