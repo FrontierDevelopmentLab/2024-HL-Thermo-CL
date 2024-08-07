@@ -20,7 +20,6 @@ function_map = {
     "GRACE": process_one_grace_file
 }
 
-# TODO: make this more general, combine with satellite class?
 def get_satellite_subtype(file_name, satellite) -> str:
     """
     GRACE and SWARM have a, b and c sub-types. 
@@ -29,7 +28,6 @@ def get_satellite_subtype(file_name, satellite) -> str:
 
     tokens = file_name.split("/")[-1].split("_")
     
-
     if satellite == "CHAMP":
         return "champ"
     elif satellite == "SWARM":
@@ -132,7 +130,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     metadata = storage_client.get_metadata_of_file(
         landing_bucket_name, input_file_path)
     print(metadata)
-    satellite = metadata["satellite"]
+    project = metadata["project"]
 
     # Collect all files that are downloaded onto the local machine
     all_locally_downloaded_files = []
@@ -171,13 +169,13 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     for file in unzipped_files:
         file_path = f"{local_directory}/{file}"
 
-        satellite_subtype = get_satellite_subtype(file_path, satellite)
+        satellite_subtype = get_satellite_subtype(file_path, project)
 
         print(f"Processing file: {file_path} ...")
         try:
-            process_function = function_map[satellite]
+            process_function = function_map[project]
         except KeyError:
-            print(f"Satellite {satellite} not supported.")
+            print(f"Satellite {project} not supported.")
             return
 
         # Process that dataframe
@@ -231,7 +229,10 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
             destination_bucket_name=output_bucket_name,
             source_file_name=local_merged_file_name,
             new_file_name=remote_merged_file_name,
-            metadata={"satellite": satellite}
+            metadata={
+                "project": project,
+                "satellite": satellite_subtype
+                }
         )
 
         # # Upload the data to influxdb
