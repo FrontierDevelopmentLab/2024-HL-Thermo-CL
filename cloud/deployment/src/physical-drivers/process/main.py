@@ -41,7 +41,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     print(file_name_ending)
 
     # Create a local directory to store the file
-    local_storage_dir = "/shared/semi-processed/omniweb"
+    local_storage_dir = "/tmp/soho_omniweb"
     os.makedirs(local_storage_dir, exist_ok=True)
 
     # download that file to the local machine

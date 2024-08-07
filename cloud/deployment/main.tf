@@ -199,7 +199,7 @@ module "process_soho_and_omniweb" {
   trigger_bucket_name = "physical-drivers-landing"
 
   function_entrypoint_name = "triggered_on_file_landing_in_bucket"
-  max_instance_count       = 100
+  max_instance_count       = 500
   available_memory         = "1024M"
 
   # Place where source code is stored

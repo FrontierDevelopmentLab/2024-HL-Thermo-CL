@@ -13,11 +13,9 @@ import time
 def main():
 
     actual_landing_bucket = "satellite-data-landing"
-    contentType = "application/zip"
-
 
     trigger_mimic = TriggerOnLandMimc(
-        trigger_bucket="satellite-data-landing",
+        trigger_bucket=actual_landing_bucket,
         cloud_function_name="tf-process-satellite-data",
         topic_name = "eventarc-us-central1-tf-process-satellite-data-950376-937"
     )
@@ -29,8 +27,8 @@ def main():
     # Get a list of files from the bucket
 
     # prefix = f"tudelft/version_01/Swarm_data"
-    prefix = f"tudelft/version_01/GOCE_data"
-    prefix = f"tudelft/version_02/GRACE-FO_data"
+    # prefix = f"tudelft/version_01/GOCE_data"
+    # prefix = f"tudelft/version_02/GRACE-FO_data"
     # prefix = f"tudelft/version_02/GRACE_data"
     # prefix = f"tudelft/version_02/CHAMP_data"
 
