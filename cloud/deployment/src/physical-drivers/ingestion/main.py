@@ -16,8 +16,7 @@ def hello_pubsub(cloud_event):
     # Print out the data from Pub/Sub, to prove that it worked
     print(f"Recieved the following message from pub/sub: {cloud_event.data}")
     message_data: str = base64.b64decode(cloud_event.data["message"]["data"])
-    print(f"Extracted message data string: {
-          message_data} with type {type(message_data)}")
+    print(f"Extracted message data string: {message_data} with type {type(message_data)}")
 
     output_bucket = "physical-drivers-landing"
 
