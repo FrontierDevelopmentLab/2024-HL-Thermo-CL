@@ -153,3 +153,38 @@ module "ingest_and_process_satellite_indices" {
   project_id            = var.project_id
 }
 
+module "ingest_soho_and_omniweb" {
+   source = "./pubsub-cloudfunction"
+
+  pubsub_topic_name = "tf-ingest-raw-physical-drivers"
+  function_name     = "tf-ingest-raw-physical-drivers"
+
+  function_entrypoint_name = "hello_pubsub"
+
+  max_instance_count = 10
+  available_memory   = "4Gi" # 4Gi is the maximum memory available, it needs a lot for the potential big download
+
+  # Setting to control ingress traffic
+  ingress_settings = "ALLOW_ALL"
+
+  # Place where source code is stored
+  function_bucket_name = google_storage_bucket.function_bucket.name
+  zip_file_name        = "function-source-soho-and-omniweb-ingestion.zip"
+  code_source_dir      = "src/physical-drivers/ingestion"
+
+  output_bucket_name = "physical-drivers-landing"
+
+  # environment variables
+  INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
+  INFLUXDB_URL   = var.INFLUXDB_URL
+
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
+
+  # Generic variables
+  service_account_email = var.service_account_email
+  labels                = local.common_labels
+  region                = var.region
+  project_id            = var.project_id
+}
+
