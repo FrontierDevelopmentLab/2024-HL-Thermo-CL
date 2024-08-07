@@ -65,10 +65,10 @@ class LSTMModel(nn.Module):
         self.fc1 = nn.Linear(lstm_size, self.output_size)
 
     def forward(self, x):
-        # Reset the hidden state
-        h0 = torch.zeros(self.lstm_depth, x.size(0), self.lstm_size).to(x.device)
-        c0 = torch.zeros(self.lstm_depth, x.size(0), self.lstm_size).to(x.device)
-        x, _ = self.lstm(x, (h0, c0))
+        # Reset the hidden state -> Not needed, it's done by default
+        #h0 = torch.zeros(self.lstm_depth, x.size(0), self.lstm_size).to(x.device)
+        #c0 = torch.zeros(self.lstm_depth, x.size(0), self.lstm_size).to(x.device)
+        x, _ = self.lstm(x)#, (h0, c0))
         # Just use the final item in the sequence.
         x = self.fc1(x[:, -1,:])
         return x

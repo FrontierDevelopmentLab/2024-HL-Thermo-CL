@@ -5,7 +5,7 @@ from datetime import datetime
 # Define the initial start date and the end date
 years=range(2000,2025)
 year_end=2024
-start_date = datetime.strptime("20000729", "%Y%m%d")
+start_date = datetime.strptime("20000101", "%Y%m%d")
 end_date = datetime.strptime("20240531", "%Y%m%d")
 
 base_url = "https://omniweb.gsfc.nasa.gov/cgi/nx1.cgi"
@@ -15,9 +15,6 @@ os.makedirs(omiweb_data_dir, exist_ok=True)  # Ensure local directory exists
 
 # Loop over each year and generate the command
 for year in years:
-    if year==2000:
-        start_date = str(year)+"0101"
-        end_date = str(year)+"0729"
     if year==2024:    
         start_date = str(year)+"0101"
         end_date = str(year)+"0531"
