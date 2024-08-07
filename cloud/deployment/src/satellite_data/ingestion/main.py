@@ -8,14 +8,32 @@ from karman.io import StorageClient
 from download_tudelft_thermo import download_data
 
 
+def get_satellite_subtype(file_name, satellite) -> str:
+    """
+    GRACE and SWARM have a, b and c sub-types. 
+    Decode this based on the filename
+    """
 
-
-"""
-Usage, send a JSON message to the relevant pub/sub topic with the following structure:
-"""
-
-# Triggered from a message on a Cloud Pub/Sub topic.
-
+    tokens = file_name.split("/")[-1].split("_")
+    
+    if satellite == "CHAMP":
+        return "champ"
+    elif satellite == "SWARM":
+        remap = {"SA": "swarm_a", "SB": "swarm_b", "SC": "swarm_c"}
+        if tokens[0] in remap:
+            return remap[tokens[0]]
+        else:
+            raise RuntimeError(f"Unrecognised SWARM satellite subtype in file {file_name}")
+    elif satellite == "GOCE":
+        return "goce"
+    elif satellite == "GRACE":
+        remap = {"GA": "grace_a", "GB": "grace_b", "GC": "grace_c"}
+        if tokens[0] in remap:
+            return remap[tokens[0]]
+        else:
+            raise RuntimeError(f"Unrecognised GRACE satellite subtype in file {file_name}")
+    else:
+        raise RuntimeError(f"Unregocnised satellite {satellite}")
 
 @functions_framework.cloud_event
 def hello_pubsub(cloud_event):
@@ -37,7 +55,7 @@ def hello_pubsub(cloud_event):
 
     print(f"Extracted message data: {message} with type {type(message)}")
  
-    satellite = message["satellite"]
+    project = message["project"]
     ftp_data_path = message["data_path"]
     output_bucket = message["bucket"]
 
@@ -68,9 +86,16 @@ def hello_pubsub(cloud_event):
 
     # Upload the new files to the bucket
     for local_file in new_files:
+
+        local_file_ending = local_file.split("/")[-1]
+        satellite_subtype = get_satellite_subtype(local_file_ending, project)
+        
         storage_client.upload_file_to_bucket(
             destination_bucket_name=output_bucket,
             source_file_name=f"{local_base_dir}/{local_file}",
             new_file_name=f"{bucket_subdirectory}{local_file.split('/')[-1]}",
-            metadata={"satellite": satellite}
+            metadata={
+                "project": project,
+                "satellite": satellite_subtype
+                }
         )

@@ -19,7 +19,7 @@ def main():
     trigger_mimic = TriggerOnLandMimc(
         trigger_bucket="satellite-data-landing",
         cloud_function_name="tf-process-satellite-data",
-        topic_name = "eventarc-us-central1-tf-process-satellite-data-610369-359"
+        topic_name = "eventarc-us-central1-tf-process-satellite-data-950376-937"
     )
 
     # Everything that is on the landing bucket, but *not* in the processed bucket has failed at some point
@@ -27,13 +27,12 @@ def main():
 
 
     # Get a list of files from the bucket
-    prefix = f"tudelft/version_02/CHAMP_data"    
-    prefix = f"tudelft/version_02/GRACE_data"
-    prefix = f"tudelft/version_02/GRACE-FO_data"
 
-    prefix = f"tudelft/version_01/Swarm_data"
+    # prefix = f"tudelft/version_01/Swarm_data"
     prefix = f"tudelft/version_01/GOCE_data"
-
+    prefix = f"tudelft/version_02/GRACE-FO_data"
+    # prefix = f"tudelft/version_02/GRACE_data"
+    # prefix = f"tudelft/version_02/CHAMP_data"
 
     processed_files = gcloud_ls("satellite-data-processed", prefix=prefix)
     processed_files = [x.split('/')[-1].replace("db_", "").replace(".parquet", "") for x in processed_files]
@@ -51,9 +50,8 @@ def main():
 
     # import sys
     # sys.exit()
-    chunk_size = 25
-    if len(missing_files) > chunk_size:
-
+    if len(missing_files) > 25:
+        chunk_size = 500 # number of possible VMs 
         for i in range(0, len(missing_files), chunk_size):
             chunk = missing_files[i:i+chunk_size]
             print(f"Processing chunk {i} to {i+chunk_size}")

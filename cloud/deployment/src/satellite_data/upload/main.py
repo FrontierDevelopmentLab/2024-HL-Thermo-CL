@@ -10,12 +10,16 @@ import pandas as pd
 
 
 
+
+
 def create_local_directories(input_file_name, prefix="/tmp"):
     local_file_name = f'{prefix}/{input_file_name}'
     local_directory_path = local_file_name.rsplit('/', 1)[0]
     # print(f"creating directory to store file: {local_directory_path}")
     Path(local_directory_path).mkdir(parents=True, exist_ok=True)
     return local_file_name
+
+
 
 
 # Triggered by a change in a storage bucket
@@ -32,7 +36,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
     data = cloud_event.data
 
-    print(f"trig on land data recieved: {data}")
+    # print(f"trig on land data recieved: {data}")
 
     # Extract data from the CloudEvent
     # event_id = cloud_event["id"]
@@ -43,7 +47,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     # updated = data["updated"]
     input_file_path = data["name"]  #  File that landed on the bucket
 
-    print(f"File {input_file_path} landed on bucket {landing_bucket_name}")
+    # print(f"File {input_file_path} landed on bucket {landing_bucket_name}")
     landing_file_base_path = input_file_path.rsplit('/', 1)[0]
 
     # Create a local directory to store the file
@@ -53,15 +57,21 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
     #  File lands on bucket, copy from bucket to local
     storage_client = StorageClient()
-    storage_client.download_file_from_bucket(
+    metadata = storage_client.download_file_from_bucket(
         landing_bucket_name, input_file_path, local_file_name, debug=True)
+
+    satellite = metadata["satellite"]
     
     # read the dataframe
-
     df = pd.read_parquet(local_file_name)
 
     # initialze the db manager
     db_manager = InfluxDBManager()
 
     # Upload the data to influxdb
-    db_manager.upload_dataframe(df)
+    try:
+        db_manager.upload_dataframe(df, measurement=satellite)
+        print(f"File {input_file_path} uploaded to influxdb")
+    except Exception as e:
+        print(f"Error uploading file {input_file_path} to influxdb")
+        print(e)
