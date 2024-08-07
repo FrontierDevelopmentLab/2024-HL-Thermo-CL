@@ -52,8 +52,9 @@ module "ingest_raw_satellite_data" {
 
 module "process_satellite_data" {
 
-  source        = "./trig-on-land-cloudfunction"
-  function_name = "tf-process-satellite-data"
+  source            = "./trig-on-land-cloudfunction"
+  function_name     = "tf-process-satellite-data"
+  pubsub_topic_name = "tf-process-satellite-data"
 
   trigger_bucket_name = "satellite-data-landing"
 
@@ -85,8 +86,9 @@ module "process_satellite_data" {
 
 module "upload_satellite_data" {
 
-  source        = "./trig-on-land-cloudfunction"
-  function_name = "tf-upload-satellite-data"
+  source            = "./trig-on-land-cloudfunction"
+  function_name     = "tf-upload-satellite-data"
+  pubsub_topic_name = "tf-upload-satellite-data"
 
   trigger_bucket_name = "satellite-data-processed"
 
@@ -154,7 +156,7 @@ module "ingest_and_process_satellite_indices" {
 }
 
 module "ingest_soho_and_omniweb" {
-   source = "./pubsub-cloudfunction"
+  source = "./pubsub-cloudfunction"
 
   pubsub_topic_name = "tf-ingest-raw-physical-drivers"
   function_name     = "tf-ingest-raw-physical-drivers"
@@ -190,8 +192,9 @@ module "ingest_soho_and_omniweb" {
 
 module "process_soho_and_omniweb" {
 
-  source        = "./trig-on-land-cloudfunction"
-  function_name = "tf-process-physical-drivers"
+  source            = "./trig-on-land-cloudfunction"
+  function_name     = "tf-process-physical-drivers"
+  pubsub_topic_name = "tf-process-physical-drivers"
 
   trigger_bucket_name = "physical-drivers-landing"
 
@@ -207,7 +210,7 @@ module "process_soho_and_omniweb" {
   # environment variables
   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
   INFLUXDB_URL   = var.INFLUXDB_URL
-  
+
   # Virtual Private Cloud Connector ID
   google_vpc_access_connector_id = "hl-therm-vpc-connector"
 
