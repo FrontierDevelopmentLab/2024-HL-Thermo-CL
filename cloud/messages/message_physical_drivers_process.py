@@ -30,16 +30,18 @@ def main():
         topic_name = "eventarc-us-central1-tf-process-physical-drivers-176308-963"
     )
 
-    prefix = "SOHO/2000"
+    missing_files = []
+    for year in range(2001, 2024+1):
+        prefix = f"OMNIWEB/{year}"
 
-    if "SOHO" in prefix:
-        contentType = "application/octet-stream"
-    elif "OMNIWEB" in prefix:
-        contentType = "text/plain"
-    else:
-        raise ValueError("Unknown prefix")
+        if "SOHO" in prefix:
+            contentType = "application/octet-stream"
+        elif "OMNIWEB" in prefix:
+            contentType = "text/plain"
+        else:
+            raise ValueError("Unknown prefix")
 
-    missing_files = get_missing_files(prefix, landing_bucket, processed_bucket)
+        missing_files.extend(get_missing_files(prefix, landing_bucket, processed_bucket))
 
     if len(missing_files) > 25:
         chunk_size = 500 # number of possible VMs 
