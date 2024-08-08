@@ -13,6 +13,7 @@ import time
 def main():
 
     actual_landing_bucket = "satellite-data-landing"
+    contentType= "application/zip"
 
     trigger_mimic = TriggerOnLandMimc(
         trigger_bucket=actual_landing_bucket,
@@ -29,7 +30,7 @@ def main():
     # prefix = f"tudelft/version_01/Swarm_data"
     # prefix = f"tudelft/version_01/GOCE_data"
     # prefix = f"tudelft/version_02/GRACE-FO_data"
-    # prefix = f"tudelft/version_02/GRACE_data"
+    prefix = f"tudelft/version_02/GRACE_data"
     # prefix = f"tudelft/version_02/CHAMP_data"
 
     processed_files = gcloud_ls("satellite-data-processed", prefix=prefix)
