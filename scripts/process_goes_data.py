@@ -5,13 +5,46 @@ import pandas as pd
 import datetime
 import os
 
-input_dir = ''
-output_dir = ''
+def get_goes_data(input_dir, mission, year, str_irr, str_irr_flag):
+    goes_ds = nc.Dataset(input_dir+'goes/goes'+str(mission)+'_y'+str(year)+'.nc')
+    time_ds = goes_ds.variables['time']
+    t = cftime.num2pydate(time_ds[:],time_ds.units)
+    irr = goes_ds[str_irr][:]
+    firr = goes_ds[str_irr_flag][:]
 
-all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
-num_wave = np.size(all_wavelengths)
-for iwave in range(num_wave):
-    wavelength = all_wavelengths[iwave]
+    return t, irr, firr
+
+
+def get_str_irr(mission,wavelength):
+    if mission < 16:
+        if wavelength==30.4:
+            str_irr = 'irr_chanB'
+        elif wavelength==121.6:
+            str_irr = 'irr_chanE_uncorr'
+        str_irr_flag = 'irr_'+str(int(wavelength*10))+'_flag'
+    else:
+        str_irr = 'irr_'+str(int(wavelength*10))
+        str_irr_flag = 'irr_'+str(int(wavelength*10))+'_flag'
+
+    return str_irr,str_irr_flag
+
+def main():
+
+    input_dir = ''
+    output_dir = ''
+
+def process_goes_data(input_dir, output_dir):
+
+    all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
+    num_wave = np.size(all_wavelengths)
+    for iwave in range(num_wave):
+        wavelength = all_wavelengths[iwave]
+
+        df_goes = process_one_wavelength(wavelength)
+        df_goes.to_csv(os.path.join(output_dir, outputstr),index=False)
+
+        
+def process_one_wavelength(wavelength):
     print(f'Processing GOES irradiance data at {wavelength}nm')
 
     strIrradiance = 'goes__irradiance_'+str(int(wavelength*10))+'nm___[W/m2]'
@@ -32,30 +65,6 @@ for iwave in range(num_wave):
         missions_years = [[16], [16, 17], [16, 17], [16, 17], [16, 17], [16, 17, 18], [16, 17, 18], [16, 18]]
         
 
-    def get_goes_data(mission, year, str_irr, str_irr_flag):
-        goes_ds = nc.Dataset(input_dir+'goes/goes'+str(mission)+'_y'+str(year)+'.nc')
-        time_ds = goes_ds.variables['time']
-        t = cftime.num2pydate(time_ds[:],time_ds.units)
-        irr = goes_ds[str_irr][:]
-        firr = goes_ds[str_irr_flag][:]
-
-        return t, irr, firr
-
-
-    def get_str_irr(mission,wavelength):
-        if mission < 16:
-            if wavelength==30.4:
-                str_irr = 'irr_chanB'
-            elif wavelength==121.6:
-                str_irr = 'irr_chanE_uncorr'
-            str_irr_flag = 'irr_'+str(int(wavelength*10))+'_flag'
-        else:
-            str_irr = 'irr_'+str(int(wavelength*10))
-            str_irr_flag = 'irr_'+str(int(wavelength*10))+'_flag'
-
-        return str_irr,str_irr_flag
-        
-
     prev_irradiance = -1
     prev_flag = 24*60
 
@@ -72,7 +81,7 @@ for iwave in range(num_wave):
 
         for imission in range(num_missions):
             str_irr,str_irr_flag = get_str_irr(missions[imission],wavelength)
-            time_stamp, irr, firr = get_goes_data(missions[imission], year, str_irr, str_irr_flag)
+            time_stamp, irr, firr = get_goes_data(input_dir, missions[imission], year, str_irr, str_irr_flag)
 
 
             istart = np.where(all__dates==time_stamp[0])[0][0]
@@ -128,4 +137,4 @@ for iwave in range(num_wave):
 
     df_goes=pd.DataFrame(dict_set)
     df_goes.sort_values(by=['all__dates_datetime__'],ascending=True,inplace=True)
-    df_goes.to_csv(os.path.join(output_dir,outputstr),index=False)
+    return df_goes 

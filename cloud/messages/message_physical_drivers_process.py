@@ -32,7 +32,7 @@ def main():
 
     missing_files = []
     for year in range(2001, 2024+1):
-        prefix = f"OMNIWEB/{year}"
+        prefix = f"SOHO/{year}"
 
         if "SOHO" in prefix:
             contentType = "application/octet-stream"
@@ -42,6 +42,7 @@ def main():
             raise ValueError("Unknown prefix")
 
         missing_files.extend(get_missing_files(prefix, landing_bucket, processed_bucket))
+    print(f"There are {len(missing_files)} files missing.")
 
     if len(missing_files) > 25:
         chunk_size = 500 # number of possible VMs 
