@@ -79,6 +79,7 @@ def create_local_directories(input_file_name, prefix="/tmp"):
     Path(local_directory_path).mkdir(parents=True, exist_ok=True)
     return local_file_name
 
+
 def get_indices_file_from_bucket(storage_client: StorageClient, local_directory: str) ->  pd.DataFrame:
     # Get the indices file
     indices_bucket = "sw-indices"
@@ -91,6 +92,17 @@ def get_indices_file_from_bucket(storage_client: StorageClient, local_directory:
     )
     df_indices = pd.read_parquet(indices_local_file)
     return df_indices
+
+
+def add_nrlmsise00_data(df):
+    # Compute NRLMSISE00 data
+    df_nrlmsise00 = create_nrlmsise00(df.copy(), processes=32, n_groups=10000)
+
+    # Merge the NRLMSISE00 data with the satellite data
+    df['NRLMSISE00__thermospheric_density__[kg/m**3]'] = df_nrlmsise00.values.flatten()
+    df.reset_index(drop=True, inplace=True)
+    df.sort_values(by='all__dates_datetime__', inplace=True)
+    return df
 
 # Triggered by a change in a storage bucket
 @functions_framework.cloud_event
@@ -214,14 +226,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
         df_merged = post_process_merged_df(df_merged)
 
-        # Compute NRLMSISE00 data
-        df_nrlmsise00 = create_nrlmsise00(df_merged.copy(), processes=1, n_groups=1)
-
-        # Merge the NRLMSISE00 data with the satellite data
-        df_merged['NRLMSISE00__thermospheric_density__[kg/m**3]']=df_nrlmsise00.values.flatten()
-        df_merged.reset_index(drop=True,inplace=True)
-        df_merged.sort_values(by='all__dates_datetime__', inplace=True)
-
+        df_merged = add_nrlmsise00_data(df_merged)
 
         df_merged = df_merged.drop_duplicates()
 
@@ -250,8 +255,8 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
         # db_manager.upload_dataframe(df_merged)
 
 
-    # # Delete all files stored on this machine
-    # time.sleep(10)
-    # print(f"Removing locally downloaded files: {all_locally_downloaded_files}")
-    # for file in all_locally_downloaded_files:
-    #     os.remove(file)
+    # Delete all files stored on this machine
+    time.sleep(10)
+    print(f"Removing locally downloaded files: {all_locally_downloaded_files}")
+    for file in all_locally_downloaded_files:
+        os.remove(file)

@@ -5,36 +5,14 @@ import os
 import pprint
 import sys
 import time
-import datetime
 import numpy as np
 from functools import partial
-from nrlmsise00 import msise_flat
 import pandas as pd
+
+from nrlmsise00_general import compute_density, create_groups, Unbuffered
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
-def compute_density(inputs):
-    date,  alt, latitude, longitude, f107A, f107, ap = inputs
-    return msise_flat(date, alt, latitude, longitude, f107A, f107, ap)[:,5]*1e3
-
-def create_dir(dir_path):
-    if os.path.exists(dir_path):
-        pass
-    else:
-        dir = os.makedirs(dir_path)
-
-def create_groups(N, group_size=100):
-    groups = []
-    for i in range(0, N + 1, group_size):
-        group = list(range(i, min(i + group_size, N )))
-        groups.append(np.array(group))
-    return groups
-
-def valid_date(s):
-    try:
-        return datetime.datetime.strptime(s, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
-    except ValueError:
-        raise argparse.ArgumentTypeError('Not a valid date:' + s + '. Expecting YYYYMMDDHHMMSS.')
 
 def main():
     parser = argparse.ArgumentParser(description='nrlmsise00 data',
@@ -46,24 +24,12 @@ def main():
     opt = parser.parse_args()
     # File name to log console output
     db_dir='nrlmsise_db_time_series'
-    create_dir(db_dir)
+    os.makedirs(db_dir)
     file_name_log = os.path.join(db_dir+'/nrlmsise00_db_time_series.log')
     te = open(file_name_log,'w')  # File where you need to keep the logs
-    class Unbuffered:
-        def __init__(self, stream):
-            self.stream = stream
 
-        def write(self, data):
-            self.stream.write(data)
-            self.stream.flush()
-            te.write(data)    # Write the data of stdout here to a text file as well
-            te.flush()
 
-        def flush(self):
-            self.stream.flush()
-            te.flush()
-
-    sys.stdout=Unbuffered(sys.stdout)
+    sys.stdout=Unbuffered(sys.stdout, te)
 
     print('Arguments:\n{}\n'.format(' '.join(sys.argv[1:])))
     print('Config:')
