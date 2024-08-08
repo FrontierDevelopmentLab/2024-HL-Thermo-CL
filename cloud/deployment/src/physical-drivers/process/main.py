@@ -86,6 +86,10 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
         data_omni_solar_wind_velocity.to_parquet(f"{local_storage_dir}/{solar_wind_velocity_output_name}")
         data_omni_indices.to_parquet(f"{local_storage_dir}/{indicies_output_name}")
 
+
+        # NOTE: there is a merge_omni.py script that merges these files into one
+        # However at the moment, the dataload appears to consume these files separately.
+
         # Upload these data files to the bucket
         metadata["info"] = "magnetic_field"
         storage_client.upload_file_to_bucket(
