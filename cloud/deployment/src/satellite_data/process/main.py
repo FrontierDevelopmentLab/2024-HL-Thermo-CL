@@ -11,6 +11,7 @@ import pandas as pd
 # from karman.scripts.process_tudelft_thermo import process_one_swarm_file, process_one_champ_file, process_one_goce_file, process_one_grace_file
 from process_tudelft_thermo import process_one_swarm_file, process_one_champ_file, process_one_goce_file, process_one_grace_file, process_satellite_data_columns, post_process_satellite_data
 from merge_sw_and_satellites import post_process_merged_df
+from run_nrlmsise00 import create_nrlmsise00
 
 #  TODO: make more robust, are these keys correct?
 function_map = {
@@ -137,7 +138,7 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
     #  zip file lands on bucket, copy from bucket to local
     storage_client.download_file_from_bucket(
-        landing_bucket_name, input_file_path, local_file_name, debug=True)
+        landing_bucket_name, input_file_path, local_file_name, debug=False)
 
     pre_unzip_files = get_files_in_directory(local_directory)
 
@@ -213,10 +214,20 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
 
         df_merged = post_process_merged_df(df_merged)
 
+        # Compute NRLMSISE00 data
+        df_nrlmsise00 = create_nrlmsise00(df_merged.copy(), processes=1, n_groups=1)
+
+        # Merge the NRLMSISE00 data with the satellite data
+        df_merged['NRLMSISE00__thermospheric_density__[kg/m**3]']=df_nrlmsise00.values.flatten()
+        df_merged.reset_index(drop=True,inplace=True)
+        df_merged.sort_values(by='all__dates_datetime__', inplace=True)
+
+
         df_merged = df_merged.drop_duplicates()
 
         # Store this local merged dataframe 
         local_merged_file_name = f"{local_directory}/{output_file_name}"
+        print(f"Storing merged dataframe to: {local_merged_file_name}")
         df_merged.to_parquet(local_merged_file_name, index=False)
 
 
@@ -239,8 +250,8 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
         # db_manager.upload_dataframe(df_merged)
 
 
-    # Delete all files stored on this machine
-    time.sleep(10)
-    print(f"Removing locally downloaded files: {all_locally_downloaded_files}")
-    for file in all_locally_downloaded_files:
-        os.remove(file)
+    # # Delete all files stored on this machine
+    # time.sleep(10)
+    # print(f"Removing locally downloaded files: {all_locally_downloaded_files}")
+    # for file in all_locally_downloaded_files:
+    #     os.remove(file)
