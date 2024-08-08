@@ -45,7 +45,7 @@ def main(processes: int, path_to_df: str, n_groups: int, debug: bool):
     df_densities.to_csv(output_file,index=False)
     print('Done')
 
-def create_nrlmsise00(df: pd.DataFrame, processes: int, n_groups: int, debug: bool):
+def create_nrlmsise00(df: pd.DataFrame, processes: int, n_groups: int, debug=False):
     """
     Args:
         df: pandas DataFrame -- satellite data without NRLMSISE00 data
@@ -110,4 +110,3 @@ if __name__ == "__main__":
     main(processes, path_to_df, groups, debug)
     print('\nTotal duration: {}'.format(time.time() - time_start))
     sys.exit(0)
-    
