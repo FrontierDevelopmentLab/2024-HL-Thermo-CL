@@ -96,7 +96,7 @@ def get_indices_file_from_bucket(storage_client: StorageClient, local_directory:
 
 def add_nrlmsise00_data(df):
     # Compute NRLMSISE00 data
-    df_nrlmsise00 = create_nrlmsise00(df.copy(), processes=32, n_groups=10000)
+    df_nrlmsise00 = create_nrlmsise00(df.copy(), processes=32, n_groups=10000, debug=False)
 
     # Merge the NRLMSISE00 data with the satellite data
     df['NRLMSISE00__thermospheric_density__[kg/m**3]'] = df_nrlmsise00.values.flatten()
