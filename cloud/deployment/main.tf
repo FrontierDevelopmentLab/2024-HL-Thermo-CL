@@ -61,7 +61,7 @@ module "process_satellite_data" {
 
   function_entrypoint_name = "triggered_on_file_landing_in_bucket"
   max_instance_count       = 500
-  available_memory         = "1024M"
+  available_memory         = "4Gi"  # nrlmsise is very memory intensive 
 
 
   # Place where source code is stored
