@@ -5,8 +5,18 @@ import pandas as pd
 import datetime
 import os
 
-def get_goes_data(input_dir, mission, year, str_irr, str_irr_flag):
-    goes_ds = nc.Dataset(input_dir+'goes/goes'+str(mission)+'_y'+str(year)+'.nc')
+# class GoesData:
+
+#     def __init__(self, input_dir, output_dir):
+#         self.input_dir = input_dir
+#         self.output_dir = output_dir
+#         self.wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]  # nm
+
+
+
+
+def get_goes_data(input_dir: str, mission: int, year: int, str_irr, str_irr_flag):
+    goes_ds = nc.Dataset(input_dir+'/goes'+str(mission)+'/y'+str(year)+'.nc')
     time_ds = goes_ds.variables['time']
     t = cftime.num2pydate(time_ds[:],time_ds.units)
     irr = goes_ds[str_irr][:]
@@ -28,105 +38,81 @@ def get_str_irr(mission,wavelength):
 
     return str_irr,str_irr_flag
 
-def main():
 
-    input_dir = ''
-    output_dir = ''
 
-def process_goes_data(input_dir, output_dir):
+def get_missions_years(wavelength):
 
-    all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
-    num_wave = np.size(all_wavelengths)
-    for iwave in range(num_wave):
-        wavelength = all_wavelengths[iwave]
+    this_year = datetime.datetime.now().year
 
-        df_goes = process_one_wavelength(wavelength)
-        df_goes.to_csv(os.path.join(output_dir, outputstr),index=False)
+    if wavelength==30.4 or wavelength==121.6:
+        all_years = range(2010, this_year+1)
+        # missions_years = [[15], [15], [15], [15], [15], [15], [15], [16, 15], [16, 17, 15], [16, 17, 15], [16, 17, 15], [16, 17], [16, 17, 18], [16, 17, 18], [16, 18]]
+        missions_years = {
+            2010: [15],
+            2011: [15],
+            2012: [15],
+            2013: [15],
+            2014: [15],
+            2015: [15],
+            2016: [15],
+            2017: [16, 15],
+            2018: [16, 17, 15],
+            2019: [16, 17, 15],
+            2020: [16, 17, 15],
+            2021: [16, 17],
+            2022: [16, 17, 18],
+            2023: [16, 17, 18],
+            2024: [16, 18]
+        }
+    else:
+        all_years =range(2017, this_year+1)
+        # missions_years = [[16], [16, 17], [16, 17], [16, 17], [16, 17], [16, 17, 18], [16, 17, 18], [16, 18]]
+        missions_years = {
+            2017: [16],
+            2018: [16, 17],
+            2019: [16, 17],
+            2020: [16, 17],
+            2021: [16, 17],
+            2022: [16, 17, 18],
+            2023: [16, 17, 18],
+            2024: [16, 18]
+        }
+       
+    # This code was written in 2024, at the time, only GOES 16 and 18 were operational. If this changes this code will need modifying 
+    for yy in range(2024, this_year+1):
+        missions_years[yy] = [16, 18]
+    
+    return missions_years, all_years
+ 
 
-        
-def process_one_wavelength(wavelength):
+
+
+def process_one_wavelength_all_years(input_dir, wavelength):
     print(f'Processing GOES irradiance data at {wavelength}nm')
 
     strIrradiance = 'goes__irradiance_'+str(int(wavelength*10))+'nm___[W/m2]'
     strFlag = 'source__gaps_flag__'#'goes__irradiance_'+str(int(wavelength*10))+'nm___flag'
 
-    outputstr = 'goes_irradiance_'+str(int(wavelength*10))+'nm_sw.csv'
 
-    dict_set={'all__dates_datetime__':[],
-            strIrradiance:[],
-            strFlag:[],}
+    dict_set = {
+        'all__dates_datetime__': [],
+        strIrradiance: [],
+        strFlag: []
+    }    
 
 
-    if wavelength==30.4 or wavelength==121.6:
-        all_years = range(2010,2024+1)
-        missions_years = [[15], [15], [15], [15], [15], [15], [15], [16, 15], [16, 17, 15], [16, 17, 15], [16, 17, 15], [16, 17], [16, 17, 18], [16, 17, 18], [16, 18]]
-    else:
-        all_years =range(2017,2024+1)
-        missions_years = [[16], [16, 17], [16, 17], [16, 17], [16, 17], [16, 17, 18], [16, 17, 18], [16, 18]]
-        
 
-    prev_irradiance = -1
-    prev_flag = 24*60
+
+    missions_years, all_years = get_missions_years(wavelength)
 
     for year in all_years:
-        print(f'-----> Year {year}')
-        all__dates = pd.date_range(start=datetime.datetime(year,1,1,0,0),end=datetime.datetime(year,12,31,23,59),freq="1min")
-        num_dates = np.size(all__dates)
-        
-        missions = missions_years[year-all_years[0]]
-        num_missions = np.size(missions)
-
-        goes__irradiance = -1*np.ones([num_dates,num_missions+1])
-        goes__irradiance__flag = -1*np.ones([num_dates,num_missions+1])
-
-        for imission in range(num_missions):
-            str_irr,str_irr_flag = get_str_irr(missions[imission],wavelength)
-            time_stamp, irr, firr = get_goes_data(input_dir, missions[imission], year, str_irr, str_irr_flag)
-
-
-            istart = np.where(all__dates==time_stamp[0])[0][0]
-            iend = np.where(all__dates==time_stamp[-1])[0][0]
-
-            goes__irradiance[istart:iend+1,imission] = irr
-            goes__irradiance__flag[istart:iend+1,imission] = firr
-
-        for itime in range(num_dates):
-            imission = 0
-            irr_check = -1
-
-            while imission<num_missions and irr_check<0:
-                irr = goes__irradiance[itime,imission]
-
-                if goes__irradiance__flag[itime,imission]==0:
-                    if not(missions[imission]<16 and num_missions>1):
-                        goes__irradiance__flag[itime,-1] = 0
-                        goes__irradiance[itime,-1] = irr
-
-                        prev_irradiance = irr
-                        prev_flag = 0
-
-                        irr_check = 1
-
-                imission +=1
-
-            if irr_check<0:
-                goes__irradiance[itime,-1] = prev_irradiance
-                prev_flag += 1
-
-                if prev_flag < 30:
-                    goes__irradiance__flag[itime] = 1
-                elif prev_flag < 120:
-                    goes__irradiance__flag[itime] = 2
-                elif prev_flag < 24*60:
-                    goes__irradiance__flag[itime] = 3
-                else:
-                    goes__irradiance__flag[itime] = 4
-
-        #Storage
-        dict_set['all__dates_datetime__'].extend(all__dates)
-        dict_set[strIrradiance].extend(goes__irradiance[:,-1])
-        dict_set[strFlag].extend(goes__irradiance__flag[:,-1])
-
+        dict_set = process_one_wavelength_one_year(
+            year,
+            wavelength,
+            input_dir,
+            dict_set,
+            )
+       
 
     first_index = list(x > 0 for x in dict_set[strIrradiance]).index(True)
     last_index = list(x > datetime.datetime.now() for x in dict_set['all__dates_datetime__']).index(True)
@@ -138,3 +124,102 @@ def process_one_wavelength(wavelength):
     df_goes=pd.DataFrame(dict_set)
     df_goes.sort_values(by=['all__dates_datetime__'],ascending=True,inplace=True)
     return df_goes 
+
+
+def process_one_wavelength_one_year(year: int, wavelength: int, input_dir: str, dict_set: dict):
+
+    prev_irradiance = -1
+    prev_flag = 24*60
+
+    missions_years, all_years = get_missions_years(wavelength)
+    strIrradiance = 'goes__irradiance_'+str(int(wavelength*10))+'nm___[W/m2]'
+    strFlag = 'source__gaps_flag__'#'goes__irradiance_'+str(int(wavelength*10))+'nm___flag'
+
+    print(f'-----> Year {year}')
+    all__dates = pd.date_range(start=datetime.datetime(year,1,1,0,0), end=datetime.datetime(year,12,31,23,59), freq="1min")
+    num_dates = np.size(all__dates)
+    
+    missions = missions_years[year]
+    num_missions = np.size(missions)
+
+    goes__irradiance = -1*np.ones([num_dates,num_missions+1])
+    goes__irradiance__flag = -1*np.ones([num_dates,num_missions+1])
+
+    for imission in range(num_missions):
+        str_irr,str_irr_flag = get_str_irr(missions[imission], wavelength)
+        time_stamp, irr, firr = get_goes_data(input_dir, missions[imission], year, str_irr, str_irr_flag)
+
+        istart = np.where(all__dates==time_stamp[0])[0][0]
+        iend = np.where(all__dates==time_stamp[-1])[0][0]
+
+        goes__irradiance[istart:iend+1,imission] = irr
+        goes__irradiance__flag[istart:iend+1,imission] = firr
+
+    for itime in range(num_dates):
+        imission = 0
+        irr_check = -1
+
+        while imission<num_missions and irr_check<0:
+            irr = goes__irradiance[itime,imission]
+
+            if goes__irradiance__flag[itime,imission]==0:
+                if not(missions[imission]<16 and num_missions>1):
+                    goes__irradiance__flag[itime,-1] = 0
+                    goes__irradiance[itime,-1] = irr
+
+                    prev_irradiance = irr
+                    prev_flag = 0
+
+                    irr_check = 1
+
+            imission +=1
+
+        if irr_check<0:
+            goes__irradiance[itime,-1] = prev_irradiance
+            prev_flag += 1
+
+            if prev_flag < 30:
+                goes__irradiance__flag[itime] = 1
+            elif prev_flag < 120:
+                goes__irradiance__flag[itime] = 2
+            elif prev_flag < 24*60:
+                goes__irradiance__flag[itime] = 3
+            else:
+                goes__irradiance__flag[itime] = 4
+
+    #Storage
+    dict_set['all__dates_datetime__'].extend(all__dates)
+    dict_set[strIrradiance].extend(goes__irradiance[:,-1])
+    dict_set[strFlag].extend(goes__irradiance__flag[:,-1])
+
+    return dict_set
+
+
+
+
+def process_goes_data(input_dir, output_dir):
+
+    all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
+    for wavelength in all_wavelengths:
+        df_goes = process_one_wavelength_all_years(input_dir, wavelength)
+        outputstr = 'goes_irradiance_'+str(int(wavelength*10))+'nm_sw.csv'
+        df_goes.to_csv(os.path.join(output_dir, outputstr),index=False)
+
+
+# def process_all_wavelengths_one_year(input_dir, output_dir):
+#     all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
+#     for wavelength in all_wavelengths:
+#         df_goes = process_one_wavelength(input_dir, wavelength)
+#         outputstr = 'goes_irradiance_'+str(int(wavelength*10))+'nm_sw.csv'
+#         df_goes.to_csv(os.path.join(output_dir, outputstr),index=False)
+
+def main():
+
+    input_dir = '/shared/raw/goes'
+    input_dir = "/tmp/goes"
+    output_dir = '/shared/processed/goes'
+
+    process_goes_data(input_dir, output_dir)
+
+if __name__ == "__main__":
+    main()
