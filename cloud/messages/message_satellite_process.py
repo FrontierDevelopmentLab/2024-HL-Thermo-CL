@@ -27,11 +27,12 @@ def main():
 
     # Get a list of files from the bucket
 
-    # prefix = f"tudelft/version_01/Swarm_data"
-    # prefix = f"tudelft/version_01/GOCE_data"
+    prefix = f"tudelft/version_01/Swarm_data"
+    prefix = f"tudelft/version_01/GOCE_data"
     # prefix = f"tudelft/version_02/GRACE-FO_data"
-    prefix = f"tudelft/version_02/GRACE_data"
     # prefix = f"tudelft/version_02/CHAMP_data"
+    # prefix = f"tudelft/version_02/GRACE_data"
+
 
     processed_files = gcloud_ls("satellite-data-processed", prefix=prefix)
     processed_files = [x.split('/')[-1].replace("db_", "").replace(".parquet", "") for x in processed_files]

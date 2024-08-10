@@ -31,8 +31,8 @@ def main():
     )
 
     missing_files = []
-    for year in range(2001, 2024+1):
-        prefix = f"SOHO/{year}"
+    for year in range(2000, 2024+1):
+        prefix = f"OMNIWEB/{year}"
 
         if "SOHO" in prefix:
             contentType = "application/octet-stream"
