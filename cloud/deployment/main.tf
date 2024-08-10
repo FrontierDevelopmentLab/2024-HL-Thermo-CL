@@ -14,9 +14,26 @@ provider "google" {
   zone        = var.zone
 }
 
-# module "messenger_satellite_data" {
+module "messenger_satellite_data" {
 
-# }
+  source = "./http-cloudfunction"
+
+  function_name = "tf-messenger-satellite-data"
+
+  function_entrypoint_name = "hello_http"
+
+  # Place where source code is stored
+  function_bucket_name = google_storage_bucket.function_bucket.name
+  zip_file_name        = "function-source-satellite-messenger.zip"
+  code_source_dir      = "src/satellite_data/message"
+
+  # Generic variables
+  service_account_email = var.service_account_email
+  labels                = local.common_labels
+  region                = var.region
+  project_id            = var.project_id
+
+}
 
 module "ingest_raw_satellite_data" {
 
@@ -65,7 +82,7 @@ module "process_satellite_data" {
 
   function_entrypoint_name = "triggered_on_file_landing_in_bucket"
   max_instance_count       = 500
-  available_memory         = "4Gi"  # nrlmsise is very memory intensive 
+  available_memory         = "4Gi" # nrlmsise is very memory intensive 
 
 
   # Place where source code is stored
@@ -237,7 +254,7 @@ module "ingest_goes" {
 
   max_instance_count = 10
   available_memory   = "8Gi"
-  available_cpu = "2"
+  available_cpu      = "2"
 
   # Setting to control ingress traffic
   ingress_settings = "ALLOW_ALL"
@@ -275,7 +292,7 @@ module "process_goes" {
 
   max_instance_count = 10
   available_memory   = "4Gi"
-  available_cpu = "1"
+  available_cpu      = "1"
 
   # Setting to control ingress traffic
   ingress_settings = "ALLOW_ALL"
