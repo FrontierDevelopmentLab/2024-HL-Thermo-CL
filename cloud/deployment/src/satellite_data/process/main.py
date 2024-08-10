@@ -115,20 +115,13 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
         The event ID, event type, bucket, name, metageneration, and timeCreated.
     """
 
-    #  hard-code for now
+    #  hard-code for now (could be sent via the message)
     output_bucket_name = "satellite-data-processed"
 
+    # Extract the data from the CloudEvent
     data = cloud_event.data
-
     print(f"trig on land data recieved: {data}")
-
-    # Extract data from the CloudEvent
-    # event_id = cloud_event["id"]
-    # event_type = cloud_event["type"]
     landing_bucket_name = data["bucket"]
-    # metageneration = data["metageneration"]
-    # timeCreated = data["timeCreated"]
-    # updated = data["updated"]
     input_file_path = data["name"]  #  File that landed on the bucket
 
     print(f"File {input_file_path} landed on bucket {landing_bucket_name}")
@@ -145,18 +138,21 @@ def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
     print(metadata)
     project = metadata["project"]
 
+    # Check if the project is supported
+    if project not in function_map.keys():
+        print(f"Project {project} not supported. Will exit this cloud function.")
+        return
+
     # Collect all files that are downloaded onto the local machine
     all_locally_downloaded_files = []
 
     #  zip file lands on bucket, copy from bucket to local
     storage_client.download_file_from_bucket(
         landing_bucket_name, input_file_path, local_file_name, debug=False)
-
     pre_unzip_files = get_files_in_directory(local_directory)
 
     # unzip the file
     unzip_file(local_file_name, local_file_name.rsplit('/', 1)[0])
-
     post_unzip_files = get_files_in_directory(local_directory)
 
     # delete the zip file
