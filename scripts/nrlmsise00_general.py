@@ -21,6 +21,7 @@ class Unbuffered:
 
 def compute_density(inputs):
     date,  alt, latitude, longitude, f107A, f107, ap = inputs
+    print(type(date))
     return msise_flat(date, alt, latitude, longitude, f107A, f107, ap)[:,5]*1e3
 
 
