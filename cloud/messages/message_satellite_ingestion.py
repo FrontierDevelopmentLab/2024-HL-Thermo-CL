@@ -17,10 +17,11 @@ topic_path = publisher.topic_path(project_id, topic_name)
 
 def create_a_message() -> str:
 
+    # TODO: check the input values, e.g. project
     message = {
-        "satellite": SatelliteCollection.CHAMP.name,
-        "bucket": "satellite-data-landing",
-        "data_path": SatelliteCollection.CHAMP.data_path
+        # "satellite": SatelliteCollection.CHAMP.name,
+        # "bucket": "satellite-data-landing",
+        # "data_path": SatelliteCollection.CHAMP.data_path
     }
 
     message = json.dumps(message)

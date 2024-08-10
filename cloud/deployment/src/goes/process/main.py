@@ -1,46 +1,76 @@
+import base64
 import functions_framework
-from cloudevents.http import CloudEvent
-from pathlib import Path
-import zipfile
 from karman.io import StorageClient
-from karman.io import InfluxDBManager
 import os
+import json
 import time
-import pandas as pd
 
 
+"""
+This cloud function is used to process GOES data.
+
+"""
+
+from process_goes_data import process_all_wavelengths_one_year
 
 
-
-
-# Triggered by a change in a storage bucket
 @functions_framework.cloud_event
-def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
-    """This function is triggered by a change in a storage bucket.
+def hello_pubsub(cloud_event):
 
-    Args:
-        cloud_event: The CloudEvent that triggered this function.
-    Returns:
-        The event ID, event type, bucket, name, metageneration, and timeCreated.
-    """
+    # Print out the data from Pub/Sub, to prove that it worked
+    print(f"Recieved the following message from pub/sub: {cloud_event.data}")
+    message_data: str = base64.b64decode(cloud_event.data["message"]["data"])
+    print(f"Extracted message data string: {message_data} with type {type(message_data)}")
 
-    #  hard-code for now
-    output_bucket_name = "satellite-data-processed"
-    data = cloud_event.data
-    print(f"trig on land data recieved: {data}")
+    #  Load the input message
+    try:
+        message = json.loads(message_data)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: unable to decode input message as json: {e}")
+        return
+    print(f"Extracted message data: {message} with type {type(message)}")
+ 
+    # Extract the relevant information from the message
+    project = message["project"]
+    year = int(message["year"]) # the year of data to download
+    output_bucket = message["output_bucket"] # the bucket to upload the processed data to
+    input_data_bucket = "satellite-data-landing" # hard coded, could be passed via message
 
-    # Extract data from the CloudEvent
-    # event_id = cloud_event["id"]
-    # event_type = cloud_event["type"]
-    landing_bucket_name = data["bucket"]
-    # metageneration = data["metageneration"]
-    # timeCreated = data["timeCreated"]
-    # updated = data["updated"]
-    input_file_path = data["name"]  #  File that landed on the bucket
+    # Create a local directory to store the data
+    local_storage_dir = f"/tmp/GOES/{year}"
+    os.makedirs(local_storage_dir, exist_ok=True)
 
-    print(f"File {input_file_path} landed on bucket {landing_bucket_name}")
-    landing_file_base_path = input_file_path.rsplit('/', 1)[0]
 
-    # Create a local directory to store the file
-    local_file_name = create_local_directories(input_file_path)
-    local_directory = Path(local_file_name).parent
+    # Download the GOES data for this year
+    storage_client = StorageClient()
+    files_on_bucket = storage_client.list_files_in_bucket_directory(input_data_bucket, f"GOES/{year}")
+    print(f"Found the following files for year {year}: {files_on_bucket}")
+    locally_downloaded_files = []
+    for file in files_on_bucket:
+        print(f"Downloading file {file} to {local_storage_dir}")
+        local_file_name = f"{local_storage_dir}/{file.split('/')[-1]}"
+        storage_client.download_file_from_bucket(
+            source_bucket_name=input_data_bucket,
+            bucket_file_name=file,
+            local_file_name=local_file_name
+        )
+        locally_downloaded_files.append(local_file_name)
+
+
+    # Process the GOES data from the specified year
+    print(f"Processing GOES data for year {year}")
+    output_files = process_all_wavelengths_one_year(local_storage_dir, local_storage_dir, year)
+
+    # Upload the processed data to the output bucket
+    for output_file in output_files:
+        print(f"Uploading file {output_file}")
+        storage_client.upload_file_to_bucket(
+            destination_bucket_name=output_bucket, 
+            source_file_name=f"{local_storage_dir}/{output_file}",
+            new_file_name=f"GOES/{year}/{output_file}",
+            metadata={"year": year, "project": project, "updated": time.time()}
+            )
+        
+    # remove the local storage directory
+    for file in locally_downloaded_files:
+        os.remove(file)

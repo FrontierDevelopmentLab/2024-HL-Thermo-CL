@@ -3,6 +3,7 @@ import wget
 from datetime import datetime
 
 
+
 def main():
 
     output_dir = '/shared/raw/goes'

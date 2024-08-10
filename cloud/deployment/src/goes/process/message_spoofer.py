@@ -4,9 +4,9 @@ import base64
 
 
 class CloudEventSpoof:
-    def __init__(self, landing_bucket_name, project, satellite, year) -> None:
+    def __init__(self, landing_bucket_name, project, year) -> None:
 
-        message_data = {"project": project, "bucket": landing_bucket_name, "satellite": satellite, "year": year}    
+        message_data = {"project": project, "year": year, "output_bucket": landing_bucket_name}    
 
         message_data = json.dumps(message_data)
         encoded_data = base64.b64encode(message_data.encode('utf-8')).decode('utf-8')
@@ -30,8 +30,7 @@ class CloudEventSpoof:
 from main import hello_pubsub
 
 project = "GOES"
-satellite = "goes14"
-output_bucket = "test_bucket_hl_therm"
-year = 2010
+year = 2015
+output_bucket = "satellite-data-processed"
 
-hello_pubsub(CloudEventSpoof(landing_bucket_name=output_bucket, project=project, satellite=satellite, year=year))
+hello_pubsub(CloudEventSpoof(landing_bucket_name=output_bucket, project=project, year=year))

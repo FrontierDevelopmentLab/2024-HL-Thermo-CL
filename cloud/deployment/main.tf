@@ -14,6 +14,10 @@ provider "google" {
   zone        = var.zone
 }
 
+# module "messenger_satellite_data" {
+
+# }
+
 module "ingest_raw_satellite_data" {
 
   source = "./pubsub-cloudfunction"
@@ -231,8 +235,9 @@ module "ingest_goes" {
 
   function_entrypoint_name = "hello_pubsub"
 
-  max_instance_count = 5
+  max_instance_count = 10
   available_memory   = "8Gi"
+  available_cpu = "2"
 
   # Setting to control ingress traffic
   ingress_settings = "ALLOW_ALL"
@@ -243,6 +248,44 @@ module "ingest_goes" {
   code_source_dir      = "src/goes/ingestion"
 
   output_bucket_name = "satellite-data-landing"
+
+  # environment variables
+  INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
+  INFLUXDB_URL   = var.INFLUXDB_URL
+
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
+
+  # Generic variables
+  service_account_email = var.service_account_email
+  labels                = local.common_labels
+  region                = var.region
+  project_id            = var.project_id
+
+}
+
+module "process_goes" {
+
+  source = "./pubsub-cloudfunction"
+
+  pubsub_topic_name = "tf-process-goes"
+  function_name     = "tf-process-goes"
+
+  function_entrypoint_name = "hello_pubsub"
+
+  max_instance_count = 10
+  available_memory   = "4Gi"
+  available_cpu = "1"
+
+  # Setting to control ingress traffic
+  ingress_settings = "ALLOW_ALL"
+
+  # Place where source code is stored
+  function_bucket_name = google_storage_bucket.function_bucket.name
+  zip_file_name        = "function-source-goes-process.zip"
+  code_source_dir      = "src/goes/process"
+
+  output_bucket_name = "satellite-data-processed"
 
   # environment variables
   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN

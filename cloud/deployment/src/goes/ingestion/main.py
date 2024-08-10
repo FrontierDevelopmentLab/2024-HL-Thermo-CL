@@ -17,10 +17,12 @@ The function is triggered by a Pub/Sub message, which contains the following inf
 
 Note, not all satellites have data for all years, for example, goes14 was not operational in 2011, but was in 2010 and 2012.
 
+Note also, that this part of the pipeline relies on *updating* existing files, so there is no check to make sure a file has already been uploaded to a bucket.
+
 """
 
 function_map = {
-    "goes_14": download_goes14, 
+    "goes14": download_goes14, 
     "goes15": download_goes15,
     "goes16": download_goes16,
     "goes17": download_goes17,
@@ -47,7 +49,7 @@ def hello_pubsub(cloud_event):
     project = message["project"]
     output_bucket = message["bucket"]
     satellite = message["satellite"]
-    year = message["year"] # the year of data to download
+    year = int(message["year"]) # the year of data to download
 
     # Check the input values
     if project != "GOES":
@@ -87,5 +89,5 @@ def hello_pubsub(cloud_event):
     )
 
     # delete the locally downloaded file
-    # time.sleep(10)
-    # os.remove(downloaded_file)
+    time.sleep(10)
+    os.remove(downloaded_file)

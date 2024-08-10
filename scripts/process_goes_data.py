@@ -16,7 +16,15 @@ import os
 
 
 def get_goes_data(input_dir: str, mission: int, year: int, str_irr, str_irr_flag):
-    goes_ds = nc.Dataset(input_dir+'/goes'+str(mission)+'/y'+str(year)+'.nc')
+
+    # file_path = input_dir+'/goes'+str(mission)+'/y'+str(year)+'.nc'
+    if os.environ.get("is_local") == "True":
+        file_path = f"{input_dir}/{year}/goes{mission}_y{year}.nc" 
+    else:
+        file_path = f"{input_dir}/goes{mission}_y{year}.nc" # file path for the cloud function
+
+    print(f"Reading file: {file_path}")
+    goes_ds = nc.Dataset(file_path)
     time_ds = goes_ds.variables['time']
     t = cftime.num2pydate(time_ds[:],time_ds.units)
     irr = goes_ds[str_irr][:]
@@ -84,10 +92,46 @@ def get_missions_years(wavelength):
     
     return missions_years, all_years
  
+def process_one_wavelength_one_year(input_dir: str, wavelength: str, year: int) -> pd.DataFrame:
 
+    print(f'Processing GOES irradiance data at {wavelength}nm for year {year}')
 
+    strIrradiance = 'goes__irradiance_'+str(int(wavelength*10))+'nm___[W/m2]'
+    strFlag = 'source__gaps_flag__'#'goes__irradiance_'+str(int(wavelength*10))+'nm___flag'
 
-def process_one_wavelength_all_years(input_dir, wavelength):
+    dict_set = {
+        'all__dates_datetime__': [],
+        strIrradiance: [],
+        strFlag: []
+    }    
+
+    dict_set = _process_dict_one_wavelength_one_year(
+        year,
+        wavelength,
+        input_dir,
+        dict_set,
+    )
+
+    try:
+        first_index = list(x > 0 for x in dict_set[strIrradiance]).index(True)
+    except ValueError:
+        raise ValueError(f"No data for year {year}")
+
+    # WJF: intended to stop processing data for the current year at the current time
+    if year == datetime.datetime.now().year:
+        last_index = list(x > datetime.datetime.now() for x in dict_set['all__dates_datetime__']).index(True)
+    else:
+        last_index = len(dict_set['all__dates_datetime__']) - 1 # This will return the save as the above, I think, but the above may miss out the very last date?! 
+
+    dict_set['all__dates_datetime__'] = dict_set['all__dates_datetime__'][first_index:last_index]
+    dict_set[strIrradiance] = dict_set[strIrradiance][first_index:last_index]
+    dict_set[strFlag] = dict_set[strFlag][first_index:last_index]
+
+    df_goes=pd.DataFrame(dict_set)
+    df_goes.sort_values(by=['all__dates_datetime__'],ascending=True,inplace=True)
+    return df_goes
+
+def process_one_wavelength_all_years(input_dir, wavelength) -> pd.DataFrame:
     print(f'Processing GOES irradiance data at {wavelength}nm')
 
     strIrradiance = 'goes__irradiance_'+str(int(wavelength*10))+'nm___[W/m2]'
@@ -101,12 +145,10 @@ def process_one_wavelength_all_years(input_dir, wavelength):
     }    
 
 
-
-
     missions_years, all_years = get_missions_years(wavelength)
 
     for year in all_years:
-        dict_set = process_one_wavelength_one_year(
+        dict_set = _process_dict_one_wavelength_one_year(
             year,
             wavelength,
             input_dir,
@@ -126,7 +168,7 @@ def process_one_wavelength_all_years(input_dir, wavelength):
     return df_goes 
 
 
-def process_one_wavelength_one_year(year: int, wavelength: int, input_dir: str, dict_set: dict):
+def _process_dict_one_wavelength_one_year(year: int, wavelength: int, input_dir: str, dict_set: dict) -> dict:
 
     prev_irradiance = -1
     prev_flag = 24*60
@@ -135,11 +177,18 @@ def process_one_wavelength_one_year(year: int, wavelength: int, input_dir: str, 
     strIrradiance = 'goes__irradiance_'+str(int(wavelength*10))+'nm___[W/m2]'
     strFlag = 'source__gaps_flag__'#'goes__irradiance_'+str(int(wavelength*10))+'nm___flag'
 
-    print(f'-----> Year {year}')
+    print(f'-----> Year {year}, wavelength {wavelength}nm')
+    try:
+        missions = missions_years[year]
+    except KeyError:
+        print(f'No data for year {year}')
+        return dict_set
+
+
+
     all__dates = pd.date_range(start=datetime.datetime(year,1,1,0,0), end=datetime.datetime(year,12,31,23,59), freq="1min")
     num_dates = np.size(all__dates)
     
-    missions = missions_years[year]
     num_missions = np.size(missions)
 
     goes__irradiance = -1*np.ones([num_dates,num_missions+1])
@@ -198,6 +247,9 @@ def process_one_wavelength_one_year(year: int, wavelength: int, input_dir: str, 
 
 
 def process_goes_data(input_dir, output_dir):
+    """
+    Adaptation of original function written by Jordi
+    """
 
     all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
     for wavelength in all_wavelengths:
@@ -206,20 +258,35 @@ def process_goes_data(input_dir, output_dir):
         df_goes.to_csv(os.path.join(output_dir, outputstr),index=False)
 
 
-# def process_all_wavelengths_one_year(input_dir, output_dir):
-#     all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
-#     for wavelength in all_wavelengths:
-#         df_goes = process_one_wavelength(input_dir, wavelength)
-#         outputstr = 'goes_irradiance_'+str(int(wavelength*10))+'nm_sw.csv'
-#         df_goes.to_csv(os.path.join(output_dir, outputstr),index=False)
+def process_all_wavelengths_one_year(input_dir: str, output_dir: str, year: int) -> list[str]:
+    """
+    Modified function to process a single year, used for the cloud function.
+    """
+    all_wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]    #nm
+    output_files = []
+    for wavelength in all_wavelengths:
+        mission_years, _ = get_missions_years(wavelength)
+        if year not in mission_years:
+            print(f"Wavelength {wavelength}nm not available for year {year}, skipping")
+            continue
+
+        try:
+            df_goes = process_one_wavelength_one_year(input_dir, wavelength, year)
+            outputstr = f'goes_irradiance_{year}_{int(wavelength*10)}nm_sw.parquet'
+            df_goes.to_parquet(os.path.join(output_dir, outputstr),index=False)
+            output_files.append(outputstr)
+        except ValueError as e:
+            print(f"Error processing data for wavelength {wavelength}nm: {e}, no first_index found, assume no data for year {year}")
+    return output_files
 
 def main():
-
+    os.environ["is_local"] = "True"
     input_dir = '/shared/raw/goes'
-    input_dir = "/tmp/goes"
+    input_dir = "/shared/raw/GOES"
     output_dir = '/shared/processed/goes'
 
-    process_goes_data(input_dir, output_dir)
+    # process_goes_data(input_dir, output_dir)
+    process_all_wavelengths_one_year(input_dir, output_dir, 2015)
 
 if __name__ == "__main__":
     main()
