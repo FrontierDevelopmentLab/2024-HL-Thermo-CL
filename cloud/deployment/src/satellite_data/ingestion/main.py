@@ -82,6 +82,10 @@ def hello_pubsub(cloud_event):
         starting_ftp_directory=ftp_data_path,
         existing_files=existing_files
     )
+    if len(new_files) == 0:
+        print("No new files to download.")
+        return 
+    
     print(f"Downloaded {len(new_files)} files.")
 
     # Upload the new files to the bucket

@@ -123,6 +123,8 @@ def download_data(local_base_dir, starting_ftp_directory, existing_files) -> lis
     files_to_download = list(set(remote_files) - set(existing_files))
 
     print(f"There are {len(files_to_download)} files to download.")
+    if files_to_download == 0:
+        return []
 
     # Now download the remaining data
     files_downloaded = thermo_downloader.download_directory(
