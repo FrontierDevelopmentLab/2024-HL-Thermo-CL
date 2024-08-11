@@ -54,6 +54,7 @@ variable "function_entrypoint_name" {
 
 variable "ingress_settings" {
   description = "Setting to control ingress traffic"
+  default = "ALLOW_ALL"
 }
 
 variable "available_cpu" {

@@ -16,11 +16,14 @@ provider "google" {
 
 module "messenger_satellite_data" {
 
-  source = "./http-cloudfunction"
+  source = "./pubsub-cloudfunction"
 
+  pubsub_topic_name = "tf-messenger-satellite-data"
   function_name = "tf-messenger-satellite-data"
 
-  function_entrypoint_name = "hello_http"
+  function_entrypoint_name = "hello_pubsub"
+
+  max_instance_count = 1
 
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
@@ -36,7 +39,12 @@ module "messenger_satellite_data" {
   # Virtual Private Cloud Connector ID
   google_vpc_access_connector_id = "hl-therm-vpc-connector"
 
-  ingress_settings = "ALLOW_ALL"
+  # environment variables (not actually needed for this function)
+  INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
+  INFLUXDB_URL   = var.INFLUXDB_URL
+
+  # Irrelevant in this case
+  output_bucket_name = ""
 
 }
 
