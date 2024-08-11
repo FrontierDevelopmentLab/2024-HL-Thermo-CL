@@ -35,3 +35,11 @@ variable "region" {
 variable "project_id" {
   description = "Project ID"
 }
+
+variable "google_vpc_access_connector_id" {
+  description = "Statically defined VPC Access Connector (created outside terraform)"
+}
+
+variable "ingress_settings" {
+  description = "Setting to control ingress traffic"
+}

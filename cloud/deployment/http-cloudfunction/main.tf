@@ -38,13 +38,21 @@ resource "google_cloudfunctions2_function" "http_function" {
   }
 
   service_config {
+    ingress_settings      = var.ingress_settings
     service_account_email = var.service_account_email
     available_memory = "512Mi"
     timeout_seconds  = 60
+    
+    # Run-time environment variables
     environment_variables = {
       IS_CLOUD = "true"
     }
+    vpc_connector = var.google_vpc_access_connector_id
+    vpc_connector_egress_settings = "ALL_TRAFFIC"
+
   }
+
+
 
   # event_trigger {
   #   event_type = "http"
