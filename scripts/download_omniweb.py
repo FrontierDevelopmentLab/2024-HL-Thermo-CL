@@ -104,7 +104,7 @@ def wget_omniweb_data(output_file, start_date, end_date):
     
         # Execute the wget command
         print(f"Running command: {wget_command}")
-        subprocess.run(wget_command, shell=True) #=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        subprocess.run(wget_command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
         return output_file
     else:
         print('file already exists, moving to the next one')

@@ -10,6 +10,14 @@ from download_soho import SohoDownloader, get_all_years
 from download_omniweb import download_omniweb_data_one_month
 
 
+"""
+This cloud function is used to ingest OMNIWEB and SOHO data. It expects a message from a Pub/Sub topic, with the following format:
+{ "data_source": "SOHO" }
+or
+{ "data_source": "OMNIWEB", "year": 2021, "month": 1 }
+"""
+
+
 @functions_framework.cloud_event
 def hello_pubsub(cloud_event):
 
@@ -46,13 +54,15 @@ def get_previous_month():
 
 def ingest_omniweb(output_bucket: str, year: int | None, month: int|None):
 
+    # If year is not supplied, get the current year (last in the list of get_all_years)
     if year is None:
         year = get_all_years()[-1]
 
     if month is None:
         month = get_previous_month()
 
-    output_dir = "/shared/raw/omniweb"
+    output_dir = "/tmp/raw/omniweb"
+    os.makedirs(output_dir, exist_ok=True)
     downloaded_file = download_omniweb_data_one_month(year=year, month=month, omiweb_data_dir=output_dir)
     downloaded_files = [downloaded_file]
     print(downloaded_files)
@@ -95,20 +105,22 @@ def ingest_soho(output_bucket):
     this_month_MM_str = datetime.now().strftime("%m")
 
     # get this year into "YY" format
-    this_year_YY_str = f"{this_year:02}"
+    this_year_YY_str = f"{this_year}"[-2:]
 
 
-    output_dir = "/shared/raw/soho"
+    output_dir = "/tmp/raw/soho"
+    os.makedirs(output_dir, exist_ok=True)
 
     downloader = SohoDownloader(output_dir)
     downloader.download_data_parallel([this_year])
 
     #  find all the files that have been downloaded
-    downloaded_files = glob(f"{output_dir}/{this_year}/{this_year_YY_str}_{this_month_MM_str}_*")
+    search_path = f"{output_dir}/{this_year}/{this_year_YY_str}_{this_month_MM_str}_*"
+    downloaded_files = glob(search_path)
 
     # remove any "robots" file
     downloaded_soho_files = [x for x in downloaded_files if "robots" not in x]
-    print(f"Downloaded {len(downloaded_soho_files)} files.")
+    print(f"Downloaded {len(downloaded_soho_files)} files found in search path {search_path}.")
 
     # Check what files have been already uploaded to the cloud
     storage_client = StorageClient()
@@ -122,9 +134,12 @@ def ingest_soho(output_bucket):
     #  get the subset of files to upload
     existing_files = [file.split("/")[-1] for file in existing_files]
     new_files = sorted([x for x in downloaded_soho_files if x.split("/")[-1] not in existing_files])
+    
+    if len(new_files) == 0:
+        print("No new files to upload. Exiting.")
+        return
 
-    print(f"Will upload {len(new_files)} files")
-    print(new_files[0:10])
+    print(f"Will upload {len(new_files)} files, e.g. {new_files[0:3]}")
 
     # Want to upload these files to the cloud with the file paths: SOHO/YEAR/FILE
     for local_file in new_files:

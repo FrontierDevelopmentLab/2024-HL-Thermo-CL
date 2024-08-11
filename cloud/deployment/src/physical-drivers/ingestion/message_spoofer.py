@@ -33,9 +33,11 @@ output_bucket = "physical-drivers-landing"
 data_source = "OMNIWEB"
 
 
-for year in range(2009, 2024+1):
-    for month in range(1, 12+1):
-        if year == 2024 and month > 7:
-            break
+# for year in range(2009, 2024+1):
+#     for month in range(1, 12+1):
+#         if year == 2024 and month > 7:
+#             break
 
-        hello_pubsub(CloudEventSpoof(output_bucket, data_source=data_source, year=year, month=month))
+#         hello_pubsub(CloudEventSpoof(output_bucket, data_source=data_source, year=year, month=month))
+
+hello_pubsub(CloudEventSpoof(output_bucket, data_source="SOHO", year=None, month=None))
