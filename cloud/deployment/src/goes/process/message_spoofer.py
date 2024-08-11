@@ -30,7 +30,7 @@ class CloudEventSpoof:
 from main import hello_pubsub
 
 project = "GOES"
-year = 2015
+year = 2023
 output_bucket = "satellite-data-processed"
 
 hello_pubsub(CloudEventSpoof(landing_bucket_name=output_bucket, project=project, year=year))

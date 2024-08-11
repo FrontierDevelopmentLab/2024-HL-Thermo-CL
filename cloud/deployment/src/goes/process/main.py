@@ -4,11 +4,14 @@ from karman.io import StorageClient
 import os
 import json
 import time
+from datetime import datetime
 
 
 """
-This cloud function is used to process GOES data.
+This cloud function is used to process GOES data. This function is triggered by a Pub/Sub message, which contains the following information:
+{"project": "GOES",  "output_bucket": "satellite-data-processed", "year": 2011}   
 
+Note the year field is optional, and if nothing is provided, the current year is used.
 """
 
 from process_goes_data import process_all_wavelengths_one_year
@@ -32,9 +35,14 @@ def hello_pubsub(cloud_event):
  
     # Extract the relevant information from the message
     project = message["project"]
-    year = int(message["year"]) # the year of data to download
     output_bucket = message["output_bucket"] # the bucket to upload the processed data to
     input_data_bucket = "satellite-data-landing" # hard coded, could be passed via message
+
+    try:
+        year = int(message["year"]) # the year of data to download
+    except KeyError:
+        year = datetime.now().year
+
 
     # Create a local directory to store the data
     local_storage_dir = f"/tmp/GOES/{year}"

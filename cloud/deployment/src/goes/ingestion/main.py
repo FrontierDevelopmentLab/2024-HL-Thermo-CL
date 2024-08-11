@@ -5,7 +5,7 @@ import os
 import json
 import time
 from download_goes_irradiance_yearly import download_goes18, download_goes17, download_goes16, download_goes15, download_goes14
-
+from datetime import datetime
 
 """
 This cloud function is used to download GOES data.
@@ -14,11 +14,14 @@ The function is triggered by a Pub/Sub message, which contains the following inf
 - bucket: the name of the bucket where the data will be stored
 - satellite: the name of the satellite from which the data will be downloaded (this must be one of goes15, goes16, goes17, goes18)
 - year: the year of data to download
+e.g.: {"project": "GOES", "bucket": "satellite-data-landing", "satellite": "goes16", "year": 2024} 
+Note the year element is optional, and if not supplied, the current year will be used.
 
 Note, not all satellites have data for all years, for example, goes14 was not operational in 2011, but was in 2010 and 2012.
 
 Note also, that this part of the pipeline relies on *updating* existing files, so there is no check to make sure a file has already been uploaded to a bucket.
 
+As of 2024, only goes16 and goes18 are active. 
 """
 
 function_map = {
@@ -49,7 +52,10 @@ def hello_pubsub(cloud_event):
     project = message["project"]
     output_bucket = message["bucket"]
     satellite = message["satellite"]
-    year = int(message["year"]) # the year of data to download
+    try:
+        year = int(message["year"])
+    except KeyError:
+        year = datetime.now().year
 
     # Check the input values
     if project != "GOES":
