@@ -33,6 +33,11 @@ module "messenger_satellite_data" {
   region                = var.region
   project_id            = var.project_id
 
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
+
+  ingress_settings = "ALLOW_ALL"
+
 }
 
 module "ingest_raw_satellite_data" {
