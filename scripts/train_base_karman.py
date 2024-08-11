@@ -32,7 +32,7 @@ def train():
     parser = argparse.ArgumentParser(description='HL-24 Karman Model Training', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--device', type=str, default='cpu', help='Device to use for training')
     parser.add_argument('--torch_type', type=str, default='float32', help='Torch type to use for training')
-    parser.add_argument('--batch_size', type=int, default=1024, help='Batch size for training')
+    parser.add_argument('--batch_size', type=int, default=64, help='Batch size for training')
     parser.add_argument('--normalization_dict_path', type=str, default=None, help='Path to the normalization dictionary. If None, the normalization values are computed on the fly')
     parser.add_argument('--model_path', type=str, default=None, help='Path to the model to load. If None, a new model is created')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate for the optimizer')
@@ -106,7 +106,14 @@ def train():
     test_month_idx = 2 * (idx_test_fold - 1)
     validation_month_idx = test_month_idx + 2
     print(test_month_idx,validation_month_idx)
-    karman_dataset._set_indices(test_month_idx=[test_month_idx], validation_month_idx=[validation_month_idx],custom={2024: {"validation":3,"test":4}})
+    karman_dataset._set_indices(test_month_idx=[test_month_idx], validation_month_idx=[validation_month_idx],custom={2001: {"validation":2,"test":3},
+                                                                                                                     2003: {"validation":9, "test":10},
+                                                                                                                     2005: {"validation":4, "test":5},
+                                                                                                                     2012: {"validation":8, "test":9},
+                                                                                                                     2013: {"validation":4, "test":5},
+                                                                                                                     2015: {"validation":2, "test":3},
+                                                                                                                     2022: {"validation":0, "test":1},
+                                                                                                                     2024: {"validation":3,"test":4}})
     train_dataset = karman_dataset.train_dataset()
     validation_dataset = karman_dataset.validation_dataset()
     test_dataset = karman_dataset.test_dataset()
