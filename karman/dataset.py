@@ -333,7 +333,7 @@ class KarmanDataset(Dataset):
                     min_=val.min()
                     self.normalization_dict[feature] = {"max": max_, "min": min_}
                 self.data_thermo["data_matrix"][feature]=2*(val - self.normalization_dict[feature]["min"])/(self.normalization_dict[feature]["max"] - self.normalization_dict[feature]["min"])-1
-                
+        self.column_names_instantaneous_features = self.data_thermo["data_matrix"].columns
         self.data_thermo["data_matrix"]=self.data_thermo["data_matrix"].values
 
         self.data_thermo['data_matrix'][np.isinf(self.data_thermo['data_matrix'])]=0.

@@ -19,6 +19,7 @@ def get_all_years() -> list[int]:
 def get_last_day_of_previous_month():
     # Get the current date
     today = datetime.today()
+
     
     # First day of the current month
     first_day_current_month = today.replace(day=1)
