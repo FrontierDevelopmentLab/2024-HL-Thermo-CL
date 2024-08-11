@@ -234,7 +234,7 @@ module "process_soho_and_omniweb" {
 
   function_entrypoint_name = "triggered_on_file_landing_in_bucket"
   max_instance_count       = 500
-  available_memory         = "1024M"
+  available_memory         = "2Gi"
 
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
