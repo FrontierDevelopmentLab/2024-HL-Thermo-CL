@@ -1,4 +1,7 @@
 import torch
+from tft_torch import tft
+from omegaconf import OmegaConf
+from . import nn
 
 def exponential_atmosphere(altitudes):    
     """
@@ -38,3 +41,33 @@ def exponential_atmosphere(altitudes):
 
     rhos = rhob[bin_indices]*torch.exp(-(altitudes-zb_expand[bin_indices])/ZS[bin_indices])      
     return rhos
+
+def load_model(karman_dataset,
+               model_path=None,
+               device="cpu",
+               prediction_type="nowcasting",
+               hidden_layer_dims=128,
+               hidden_layers=3,
+               configuration=None,
+               ):
+    
+    if prediction_type=="nowcasting":
+        num_instantaneous_features=len(karman_dataset.column_names_instantaneous_features)
+        input_dimension=num_instantaneous_features#karman_dataset[0]['instantaneous_features'].shape[0]
+        device=torch.device('cpu')    
+        karman_model=nn.SimpleNetwork( input_dim=input_dimension,
+                                            act=torch.nn.LeakyReLU(negative_slope=0.01),
+                                            hidden_layer_dims=[hidden_layer_dims]*hidden_layers,
+                                            output_dim=1).to(device)
+        karman_model.load_state_dict(torch.load(model_path))
+        num_params=sum(p.numel() for p in karman_model.parameters() if p.requires_grad)
+        print(f"number of parmaeters: {num_params}")
+        return karman_model
+    elif prediction_type=="forecasting":
+        ts_karman_model = tft.TemporalFusionTransformer(OmegaConf.create(configuration))
+        ts_karman_model.apply(nn.weight_init)
+        ts_karman_model.to(device)
+        num_params=sum(p.numel() for p in ts_karman_model.parameters() if p.requires_grad)
+        print(f"number of parameters: {num_params}")
+        ts_karman_model.load_state_dict(torch.load(model_path,map_location=torch.device(device)))
+        return ts_karman_model
