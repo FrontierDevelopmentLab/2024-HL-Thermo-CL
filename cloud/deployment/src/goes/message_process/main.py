@@ -26,4 +26,5 @@ def hello_pubsub(cloud_event):
                 "output_bucket": "satellite-data-processed",
                 "wavelength": wavelength,
             },
+            debug=False,
         )
