@@ -16,6 +16,7 @@ dependencies:
   - wandb
   - pyarrow
   - influxdb-client
+  - cartopy
   - pip:
     - nrlmsise00
     - spaceweather
