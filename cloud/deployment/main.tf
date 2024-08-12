@@ -118,39 +118,39 @@ module "process_satellite_data" {
 
 }
 
-module "upload_satellite_data" {
+# module "upload_satellite_data" {
 
-  source            = "./trig-on-land-cloudfunction"
-  function_name     = "tf-upload-satellite-data"
-  pubsub_topic_name = "tf-upload-satellite-data"
+#   source            = "./trig-on-land-cloudfunction"
+#   function_name     = "tf-upload-satellite-data"
+#   pubsub_topic_name = "tf-upload-satellite-data"
 
-  trigger_bucket_name = "satellite-data-processed"
-
-
-  function_entrypoint_name = "triggered_on_file_landing_in_bucket"
-  max_instance_count       = 10
-  available_memory         = "1024M"
+#   trigger_bucket_name = "satellite-data-processed"
 
 
-  # Place where source code is stored
-  function_bucket_name = google_storage_bucket.function_bucket.name
-  zip_file_name        = "function-source-satellite-upload.zip"
-  code_source_dir      = "src/satellite_data/upload"
+#   function_entrypoint_name = "triggered_on_file_landing_in_bucket"
+#   max_instance_count       = 10
+#   available_memory         = "1024M"
 
-  # environment variables
-  INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
-  INFLUXDB_URL   = var.INFLUXDB_URL
 
-  # Virtual Private Cloud Connector ID
-  google_vpc_access_connector_id = "hl-therm-vpc-connector"
+#   # Place where source code is stored
+#   function_bucket_name = google_storage_bucket.function_bucket.name
+#   zip_file_name        = "function-source-satellite-upload.zip"
+#   code_source_dir      = "src/satellite_data/upload"
 
-  # Generic variables
-  service_account_email = var.service_account_email
-  labels                = local.common_labels
-  region                = var.region
-  project_id            = var.project_id
+#   # environment variables
+#   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
+#   INFLUXDB_URL   = var.INFLUXDB_URL
 
-}
+#   # Virtual Private Cloud Connector ID
+#   google_vpc_access_connector_id = "hl-therm-vpc-connector"
+
+#   # Generic variables
+#   service_account_email = var.service_account_email
+#   labels                = local.common_labels
+#   region                = var.region
+#   project_id            = var.project_id
+
+# }
 
 module "ingest_and_process_satellite_indices" {
 
@@ -256,6 +256,8 @@ module "process_soho_and_omniweb" {
 
 }
 
+
+
 module "ingest_goes" {
 
   source = "./pubsub-cloudfunction"
@@ -294,6 +296,38 @@ module "ingest_goes" {
 
 }
 
+module "message_goes" {
+  source = "./pubsub-cloudfunction"
+
+  pubsub_topic_name = "tf-message-goes"
+  function_name     = "tf-message-goes"
+
+  function_entrypoint_name = "hello_pubsub"
+
+  max_instance_count = 1
+
+  # Place where source code is stored
+  function_bucket_name = google_storage_bucket.function_bucket.name
+  zip_file_name        = "function-source-goes-messenger.zip"
+  code_source_dir      = "src/goes/message_process"
+
+  output_bucket_name = ""
+
+    # environment variables
+  INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
+  INFLUXDB_URL   = var.INFLUXDB_URL
+
+  # Virtual Private Cloud Connector ID
+  google_vpc_access_connector_id = "hl-therm-vpc-connector"
+
+  # Generic variables
+  service_account_email = var.service_account_email
+  labels                = local.common_labels
+  region                = var.region
+  project_id            = var.project_id
+
+}
+
 module "process_goes" {
 
   source = "./pubsub-cloudfunction"
@@ -304,8 +338,9 @@ module "process_goes" {
   function_entrypoint_name = "hello_pubsub"
 
   max_instance_count = 10
-  available_memory   = "4Gi"
-  available_cpu      = "1"
+  available_memory   = "16Gi"
+  available_cpu      = "4"
+  timeout_seconds    = 540
 
   # Setting to control ingress traffic
   ingress_settings = "ALLOW_ALL"

@@ -5,14 +5,6 @@ import pandas as pd
 import datetime
 import os
 
-# class GoesData:
-
-#     def __init__(self, input_dir, output_dir):
-#         self.input_dir = input_dir
-#         self.output_dir = output_dir
-#         self.wavelengths = [25.6, 28.4, 30.4, 117.5, 121.6, 133.5, 140.5]  # nm
-
-
 
 
 def get_goes_data(input_dir: str, mission: int, year: int, str_irr, str_irr_flag):

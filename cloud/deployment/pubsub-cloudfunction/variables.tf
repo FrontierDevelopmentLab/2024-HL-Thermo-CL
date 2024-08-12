@@ -85,3 +85,8 @@ variable "INFLUXDB_URL" {
 variable "google_vpc_access_connector_id" {
   description = "Statically defined VPC Access Connector (created outside terraform)"
 }
+
+variable "timeout_seconds" {
+  description = "Timeout for the cloud function (how long it will run for)"
+  default     = 540
+}
