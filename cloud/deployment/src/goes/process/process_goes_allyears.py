@@ -1,0 +1,1 @@
+../../../../../scripts/process_goes_allyears.py

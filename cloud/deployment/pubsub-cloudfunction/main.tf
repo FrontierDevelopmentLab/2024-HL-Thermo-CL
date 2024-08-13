@@ -52,7 +52,7 @@ resource "google_cloudfunctions2_function" "function_trigger_on_pubsub" {
     min_instance_count = var.min_instance_count
     available_memory   = var.available_memory
     available_cpu      = var.available_cpu
-    timeout_seconds    = 540
+    timeout_seconds    = var.timeout_seconds
     # Run-time environment variables
     environment_variables = {
       SERVICE_CONFIG_TEST = "config_test"

@@ -17,3 +17,5 @@ class CloudMessageHandler:
             return
         future = self.publisher.publish(self.topic_path, data=message_bytes)
         print(future.result())
+        
+ 
