@@ -472,6 +472,7 @@ class KarmanDataset(Dataset):
             self.time_series_data[data_name]["data"] = (self.time_series_data[data_name]["data"].resample(f"{resolution}T").ffill())
             # We store the start date of the dataset, and the data matrix.
             self.time_series_data[data_name]["date_start"] = min(self.time_series_data[data_name]["data"].index)
+            self.time_series_data[data_name]["column_names"] = self.time_series_data[data_name]["data"].columns
             self.time_series_data[data_name]["data_matrix"] = self.time_series_data[data_name]["data"].values
             # Some of the time series data is highly skewed, so much so even logging doesnt help
             # This method forces a normal distribution by mapping the quantiles to
@@ -496,6 +497,7 @@ class KarmanDataset(Dataset):
             self.time_series_data[data_name]["data"] = (self.time_series_data[data_name]["data"].resample(f"{resolution}T").ffill())
             # We store the start date of the dataset, and the data matrix.
             self.time_series_data[data_name]["date_start"] = min(self.time_series_data[data_name]["data"].index)
+            self.time_series_data[data_name]["column_names"] = self.time_series_data[data_name]["data"].columns
             self.time_series_data[data_name]["data_matrix"] = torch.tensor(self.time_series_data[data_name]["data"].values,dtype=self.torch_type).detach()
             #let's normalize it - being a thermospheric density, this strategy is different than the other time series:
             self.time_series_data[data_name]["data_matrix"]=self.scale_density(self.time_series_data[data_name]["data_matrix"])
