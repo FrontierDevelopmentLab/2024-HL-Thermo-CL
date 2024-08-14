@@ -1,1 +1,1 @@
-../../../../../scripts/process_omniweb.py
+../../../../scripts/process_omniweb.py

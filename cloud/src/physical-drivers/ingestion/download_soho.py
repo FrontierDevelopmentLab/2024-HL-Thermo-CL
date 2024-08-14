@@ -1,1 +1,1 @@
-../../../../../scripts/download_soho.py
+../../../../scripts/download_soho.py
