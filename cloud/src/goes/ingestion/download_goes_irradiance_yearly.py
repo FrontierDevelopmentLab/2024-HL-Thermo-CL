@@ -1,1 +1,1 @@
-../../../../../scripts/download_goes_irradiance_yearly.py
+../../../../scripts/download_goes_irradiance_yearly.py
