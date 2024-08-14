@@ -1,1 +1,1 @@
-../../../../scripts/merge_sw_and_satellites.py
+../../../scripts/merge_sw_and_satellites.py

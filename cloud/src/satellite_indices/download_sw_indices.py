@@ -1,1 +1,1 @@
-../../../../scripts/download_sw_indices.py
+../../../scripts/download_sw_indices.py
