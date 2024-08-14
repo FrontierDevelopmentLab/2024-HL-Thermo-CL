@@ -1,1 +1,1 @@
-../../../../../scripts/process_goes_allyears.py
+../../../../scripts/process_goes_allyears.py

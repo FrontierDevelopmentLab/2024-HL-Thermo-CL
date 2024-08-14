@@ -1,1 +1,1 @@
-../../../../../scripts/process_goes_data.py
+../../../../scripts/process_goes_data.py

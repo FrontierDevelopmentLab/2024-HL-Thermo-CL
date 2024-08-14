@@ -28,7 +28,7 @@ module "messenger_satellite_data" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-satellite-messenger.zip"
-  code_source_dir      = "src/satellite_data/message"
+  code_source_dir      = "../src/satellite_data/message"
 
   # Generic variables
   service_account_email = var.service_account_email
@@ -66,7 +66,7 @@ module "ingest_raw_satellite_data" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-satellite-ingestion.zip"
-  code_source_dir      = "src/satellite_data/ingestion"
+  code_source_dir      = "../src/satellite_data/ingestion"
 
   output_bucket_name = "satellite-data-landing"
 
@@ -101,7 +101,7 @@ module "process_satellite_data" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-satellite-process.zip"
-  code_source_dir      = "src/satellite_data/process"
+  code_source_dir      = "../src/satellite_data/process"
 
   # environment variables
   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
@@ -170,7 +170,7 @@ module "ingest_and_process_satellite_indices" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-indices.zip"
-  code_source_dir      = "src/satellite_indices"
+  code_source_dir      = "../src/satellite_indices"
 
   output_bucket_name = "sw-indices"
 
@@ -206,7 +206,7 @@ module "ingest_soho_and_omniweb" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-soho-and-omniweb-ingestion.zip"
-  code_source_dir      = "src/physical-drivers/ingestion"
+  code_source_dir      = "../src/physical-drivers/ingestion"
 
   output_bucket_name = "physical-drivers-landing"
 
@@ -239,7 +239,7 @@ module "process_soho_and_omniweb" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-physical-drivers-process.zip"
-  code_source_dir      = "src/physical-drivers/process"
+  code_source_dir      = "../src/physical-drivers/process"
 
   # environment variables
   INFLUXDB_TOKEN = var.INFLUXDB_TOKEN
@@ -275,7 +275,7 @@ module "ingest_goes" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-goes-ingestion.zip"
-  code_source_dir      = "src/goes/ingestion"
+  code_source_dir      = "../src/goes/ingestion"
 
   output_bucket_name = "satellite-data-landing"
 
@@ -307,7 +307,7 @@ module "message_goes" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-goes-messenger.zip"
-  code_source_dir      = "src/goes/message_process"
+  code_source_dir      = "../src/goes/message_process"
 
   output_bucket_name = ""
 
@@ -346,7 +346,7 @@ module "process_goes" {
   # Place where source code is stored
   function_bucket_name = google_storage_bucket.function_bucket.name
   zip_file_name        = "function-source-goes-process.zip"
-  code_source_dir      = "src/goes/process"
+  code_source_dir      = "../src/goes/process"
 
   output_bucket_name = "satellite-data-processed"
 
