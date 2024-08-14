@@ -70,6 +70,9 @@ dic_invalid['23 S/c, Zgse,Re']=9999.99
 dic_invalid['24 BSN location, Xgse,Re']=9999.99
 dic_invalid['25 BSN location, Ygse,Re']=9999.99
 dic_invalid['26 BSN location, Zgse,Re']=9999.99
+dic_invalid['27 AE-index, nT']=99999
+dic_invalid['28 AL-index, nT']=99999
+dic_invalid['29 AU-index, nT']=99999
 #and this is another useful dictionary for the renaming part:
 dict_names={
     'time': 'all__dates_datetime__', 
