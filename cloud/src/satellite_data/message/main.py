@@ -13,24 +13,18 @@ from karman.enums import Satellite
 
 
 def create_a_message(satellite: Satellite) -> dict:
-
     message = {
         "project": satellite.name,
         "bucket": "satellite-data-landing",
         "data_path": satellite.data_path
     }
-
     return message
 
-
-# @functions_framework.http
-# def hello_http(request):
     
 @functions_framework.cloud_event
 def hello_pubsub(cloud_event):
 
     print(f"Recieved the following message from pub/sub: {cloud_event.data}")
-
 
     project_id = 'hl-therm'
     topic_name = 'tf-ingest-raw-satellite-data'

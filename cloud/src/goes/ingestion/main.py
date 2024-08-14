@@ -9,7 +9,7 @@ from datetime import datetime
 
 """
 This cloud function is used to download GOES data.
-The function is triggered by a Pub/Sub message, which contains the following information:
+The function is triggered by a Pub/Sub message, which must contain the following information:
 - project: (the only acceptable value is GOES)
 - bucket: the name of the bucket where the data will be stored
 - satellite: the name of the satellite from which the data will be downloaded (this must be one of goes15, goes16, goes17, goes18)

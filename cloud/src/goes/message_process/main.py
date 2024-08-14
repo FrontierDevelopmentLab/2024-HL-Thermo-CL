@@ -4,7 +4,9 @@ from karman.io import CloudMessageHandler
 
 """
 This cloud function is used to sent messages to the process-goes topic. 
-This allows for the processing of GOES data on a per-wavelength basis.
+This allows for the processing of GOES data on a per-wavelength basis, as this function sends one message per wavelength.
+This function is triggered by a Pub/Sub message, but no data is needed in that message (it is possible that a HTTP trigger could have been used).
+It is expected that this function will be triggered by a Cloud Scheculer tigger (or other cron task)
 """
 
 @functions_framework.cloud_event

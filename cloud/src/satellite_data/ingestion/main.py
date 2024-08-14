@@ -3,9 +3,13 @@ import functions_framework
 import json
 import os
 from karman.io import StorageClient
-
-# from karman.scripts.download_tudelft_thermo import download_data
 from download_tudelft_thermo import download_data
+
+
+"""
+The purpose of this could function is to download the satellite data (CHAMP, GRACE, SWARM, GOCE) from the tudelft FTP server.
+The function is triggered by a pub/sub message.
+"""
 
 
 def get_satellite_subtype(file_name, satellite) -> str:
@@ -40,11 +44,8 @@ def hello_pubsub(cloud_event):
 
     # Print out the data from Pub/Sub, to prove that it worked
     print(f"Recieved the following message from pub/sub: {cloud_event.data}")
-
     message_data: str = base64.b64decode(cloud_event.data["message"]["data"])
-
     print(f"Extracted message data string: {message_data} with type {type(message_data)}")
-
 
     #  Load the input message
     try:
@@ -52,7 +53,6 @@ def hello_pubsub(cloud_event):
     except json.JSONDecodeError as e:
         print(f"ERROR: unable to decode input message as json: {e}")
         return
-
     print(f"Extracted message data: {message} with type {type(message)}")
  
     project = message["project"]

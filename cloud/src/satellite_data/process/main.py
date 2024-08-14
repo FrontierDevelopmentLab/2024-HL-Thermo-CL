@@ -7,11 +7,16 @@ from karman.io import InfluxDBManager
 import os
 import time
 import pandas as pd
-
 # from karman.scripts.process_tudelft_thermo import process_one_swarm_file, process_one_champ_file, process_one_goce_file, process_one_grace_file
 from process_tudelft_thermo import process_one_swarm_file, process_one_champ_file, process_one_goce_file, process_one_grace_file, process_satellite_data_columns, post_process_satellite_data
 from merge_sw_and_satellites import post_process_merged_df
 from run_nrlmsise00 import create_nrlmsise00
+
+
+"""
+The purpose of this cloud function is to process "satellite data". This extracts the raw data files for one of the satellites (e.g. CHAMP), downloads it, and runs the necessary transformations. 
+Note that the satellite indices data is combined here. In addition the MSISE data is also combined (Which makes use of the nrlmsise code).
+"""
 
 #  TODO: make more robust, are these keys correct?
 function_map = {

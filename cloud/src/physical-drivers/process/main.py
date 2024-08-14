@@ -6,18 +6,17 @@ from process_omniweb import process_one_omniweb_file
 import os
 import time
 
+"""
+This cloud function is used to process the SOHO and OMNIWEB data. 
+The function is triggered automatically by a file landing on the ingestion bucket for SOHO and OMNIWEB.
+"""
+
 
 
 # Triggered by a change in a storage bucket
 @functions_framework.cloud_event
 def triggered_on_file_landing_in_bucket(cloud_event: CloudEvent) -> tuple:
-    """This function is triggered by a change in a storage bucket.
 
-    Args:
-        cloud_event: The CloudEvent that triggered this function.
-    Returns:
-        The event ID, event type, bucket, name, metageneration, and timeCreated.
-    """
 
     #  hard-code for now
     output_bucket_name = "physical-drivers-processed"

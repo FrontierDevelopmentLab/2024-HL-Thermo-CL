@@ -74,6 +74,7 @@ Different satellites and data sources are updated with differing frequencies. Ea
 
 ## Details on the directory structure
 The `cloud` directory has the following (simplified) structure:
+```
 ├── deployment
 ├── messages
 └── src
@@ -81,6 +82,7 @@ The `cloud` directory has the following (simplified) structure:
     ├── physical-drivers
     ├── satellite_data
     └── satellite_indices
+```
 
 - The `deployment` directory contains terraform code to construct the pipeline.
 - The `messages` directory contains scripts that can be used by the user to directly communicate (and trigger) the cloud functions. This is normally only done for testing purpoases.
@@ -96,3 +98,29 @@ The process folder contains the python code for the cloud function to process th
 
 The `satellite_indices` folder only has no sub-folder since both the ingestion and process steps are done in a single cloud function. 
 You may also see a `messenger` folder. Some of the ingestion or processing functions are complex, and require multiple different start messages (and therefore multiple different instances of the cloud function) to do all necessary steps. The messenger function handles these messages, which then allows the messinger function itself to be triggered by a single Cloud Scheduler trigger.
+
+### A deeper dive into one of the cloud functions
+This shows the relevant directory structure for the goes-ingestion cloud function. 
+```
+├── goes
+│   ├── ingestion
+│   │   ├── download_goes_irradiance_yearly.py -> ../../../../scripts/download_goes_irradiance_yearly.py
+│   │   ├── karman
+│   │   ├── main.py
+│   │   ├── message_spoofer.py
+│   │   └── requirements.txt
+│   ├── message_process
+```
+
+The `main.py` file contains the entrypoint for the cloud function and this is what is automatialy run. 
+The `goes/ingestion` directory contains everything that is needed to run that code, and ideally nothing more. 
+All cloud functions in this packet will have a `message_spoofer.py`, which can be used to test the cloud function on your local machine (you will need the approproate credentials to interact with the GCP project).
+In this example, `download_goes_irradiance_yearly.py` is a soft-link to a file with the same name inside the scripts directory. There are many such examples of this soft-linking and we plan to move these scripts into a package. 
+Lastly there is also the `karman` directory. All cloud functions will have a copy of this. These directories have the following structure:
+```
+├── karman
+│   ├── karman -> ../../../../../karman
+│   ├── requirements-cloud.txt -> ../../../../../requirements-cloud.txt
+│   └── setup.py -> ../../../../../setup.py
+```
+Again these are all soft-links to folders and files in other areas of the package. The `setup.py` has a special configuration to make sure that only relevant parts of `karman` are installed on the cloud. 

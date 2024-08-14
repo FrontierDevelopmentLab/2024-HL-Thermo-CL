@@ -9,6 +9,14 @@ from process_sw_proxy_data import process_sw_proxy_data
 from merge_sw_and_satellites import join_sw_indices_files
 
 
+"""
+The purpose of this could function is to ingest AND process the "satellite indices" data.
+These two functions are combined into this single script because there is very little processing overhead required.
+
+The function is triggered by a pub/sub message, however no information is required from the pub/sub message so this only acts as a trigger. 
+"""
+
+
 # Triggered from a message on a Cloud Pub/Sub topic.
 @functions_framework.cloud_event
 def hello_pubsub(cloud_event):
