@@ -1,6 +1,9 @@
 """
 This cloud function is used to trigger the ingestion chain for the "satellite_data".
-The function is triggered by an HTTP request, and sends a message to the "ingest-raw-satellite-data" topic.
+The function is triggered pub/sub, although nothing is required in the pub/sub message, just the fact that a message is sent to the topic.
+(This could have been done by a HTTP trigger)
+
+Once the function is triggered, it creates a message for each satellite in SatelliteCollection, and sends a message to the "ingest-raw-satellite-data" topic.
 """
 
 import functions_framework

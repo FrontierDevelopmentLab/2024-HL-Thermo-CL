@@ -256,8 +256,6 @@ module "process_soho_and_omniweb" {
 
 }
 
-
-
 module "ingest_goes" {
 
   source = "./pubsub-cloudfunction"
