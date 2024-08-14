@@ -1,1 +1,1 @@
-../../../../../scripts/process_tudelft_thermo.py
+../../../../scripts/process_tudelft_thermo.py

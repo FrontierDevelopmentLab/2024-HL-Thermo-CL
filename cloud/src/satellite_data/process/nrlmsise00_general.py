@@ -1,1 +1,1 @@
-../../../../../scripts/nrlmsise00_general.py
+../../../../scripts/nrlmsise00_general.py

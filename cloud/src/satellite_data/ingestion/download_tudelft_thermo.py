@@ -1,1 +1,1 @@
-../../../../../scripts/download_tudelft_thermo.py
+../../../../scripts/download_tudelft_thermo.py
