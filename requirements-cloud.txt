@@ -1,0 +1,6 @@
+influxdb_client
+pandas
+pyyaml
+requests
+pyarrow
+google-cloud-storage
