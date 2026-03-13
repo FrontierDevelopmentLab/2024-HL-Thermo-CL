@@ -1,0 +1,1 @@
+../../../scripts/download_sw_indices.py

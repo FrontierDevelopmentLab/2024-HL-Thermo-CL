@@ -1,0 +1,3 @@
+[submodule "pynrlmsise00"]
+	path = pynrlmsise00
+	url = https://github.com/FrontierDevelopmentLab/pynrlmsise00

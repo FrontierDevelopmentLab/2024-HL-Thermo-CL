@@ -2,7 +2,20 @@ import pandas as pd
 from influxdb_client import InfluxDBClient
 import os
 import yaml
+from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.client.exceptions import InfluxDBError
+from influxdb_client.rest import ApiException
 
+
+# import logging
+# import sys
+# root = logging.getLogger()
+# root.setLevel(logging.DEBUG)
+# handler = logging.StreamHandler(sys.stdout)
+# handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# root.addHandler(handler)
 
 
 class InfluxDBManager:
@@ -49,14 +62,20 @@ class InfluxDBManager:
             return self._load_credentials_local()
 
     def write(self, data, measurement, field_columns):
-        with self.client.write_api() as write_api:
-            write_api.write(
-                bucket=self._bucket,
-                org=self._org,
-                record=data,
-                data_frame_measurement_name=measurement,
-                data_frame_field_columns=field_columns
-                )
+        try:
+            with self.client.write_api(write_options=SYNCHRONOUS) as write_api:
+                response = write_api.write(
+                    bucket=self._bucket,
+                    org=self._org,
+                    record=data,
+                    data_frame_measurement_name=measurement,
+                    data_frame_field_columns=field_columns,
+                    )
+            
+        except InfluxDBError as error:
+            root.exception(f"Error writing to InfluxDB: {error}")
+            root.exception(f"Error message: {error.message}, status: {error.status}, reason: {error.reason}")
+            raise RuntimeError("Error writing to InfluxDB")
 
     def query(self, query) -> str:
         query_api = self.client.query_api()
@@ -110,7 +129,7 @@ class InfluxDBManager:
         df = df.set_index("all__dates_datetime__")
         return df
 
-    def upload_dataframe(self, df: pd.DataFrame, measurement="satellites_data_w_sw", field_columns=None):
+    def upload_dataframe(self, df: pd.DataFrame, measurement: str, field_columns=None):
 
         # Make sure the dataframe is in the right format, if there is a KeyError it probably is already in the right format
         try:
@@ -120,8 +139,14 @@ class InfluxDBManager:
 
         if field_columns is None:
             field_columns = df.columns.tolist()
+
+        # Make sure field columns is sorted
+        field_columns = sorted(field_columns)
+
         self.write(data=df, measurement=measurement, field_columns=field_columns)
 
     def close(self):
         self.client.close()
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()

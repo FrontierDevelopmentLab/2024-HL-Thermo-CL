@@ -3,6 +3,10 @@ variable "labels" {
   type        = map(string)
 }
 
+variable "pubsub_topic_name" {
+  description = "Name of the Pub/Sub topic"
+}
+
 variable "function_name" {
   description = "Name of the cloud function"
 }

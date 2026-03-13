@@ -1,0 +1,1 @@
+../../../../scripts/download_goes_irradiance_yearly.py

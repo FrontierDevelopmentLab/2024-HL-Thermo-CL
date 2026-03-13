@@ -54,6 +54,7 @@ variable "function_entrypoint_name" {
 
 variable "ingress_settings" {
   description = "Setting to control ingress traffic"
+  default = "ALLOW_ALL"
 }
 
 variable "available_cpu" {
@@ -83,4 +84,9 @@ variable "INFLUXDB_URL" {
 
 variable "google_vpc_access_connector_id" {
   description = "Statically defined VPC Access Connector (created outside terraform)"
+}
+
+variable "timeout_seconds" {
+  description = "Timeout for the cloud function (how long it will run for)"
+  default     = 540
 }

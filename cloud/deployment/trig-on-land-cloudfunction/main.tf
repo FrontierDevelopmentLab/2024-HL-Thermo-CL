@@ -11,6 +11,12 @@ resource "google_storage_bucket_object" "function_zip_object" {
   source = data.archive_file.function_archive_file.output_path # Path to the zipped function source code
 }
 
+# Pub/Sub topic to pass messages cloud function
+resource "google_pubsub_topic" "default" {
+  name   = var.pubsub_topic_name
+  labels = var.labels
+}
+
 # Cloud function that will trigger on file landing in bucket (triggered by a `Finalize` event on the bucket)
 resource "google_cloudfunctions2_function" "trigger_on_land_function" {
 
@@ -55,12 +61,7 @@ resource "google_cloudfunctions2_function" "trigger_on_land_function" {
     }
     ingress_settings      = "ALLOW_INTERNAL_ONLY"
     service_account_email = var.service_account_email
-    # vpc_access {
-    #   # Use the VPC Connector
-    #   connector = var.google_vpc_access_connector_id
-    #   # all egress from the service should go through the VPC Connector
-    #   egress = "ALL_TRAFFIC"
-    # }
+
     vpc_connector = var.google_vpc_access_connector_id
     vpc_connector_egress_settings = "ALL_TRAFFIC"
   }

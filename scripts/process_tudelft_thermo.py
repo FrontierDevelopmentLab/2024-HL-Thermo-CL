@@ -30,6 +30,7 @@ def parsetime(v):
 
 
 def extract_generic_times_and_data(path_to_file: str) -> tuple[np.array]:
+
     times = []
     data = []
     with open(path_to_file, 'r') as file:
@@ -38,7 +39,7 @@ def extract_generic_times_and_data(path_to_file: str) -> tuple[np.array]:
                 continue
             datetime_part, data_part = line.split(' UTC', 1)
             times.append(parsetime(datetime_part.encode()))
-            datetime_part.append(list(map(float, data_part.split())))
+            data.append(list(map(float, data_part.split())))
     times = np.array(times, dtype='datetime64[us]')
     data = np.array(data)
     return times, data

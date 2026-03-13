@@ -130,12 +130,20 @@ class StorageClient:
 
 
     def download_file_from_bucket(self, source_bucket_name: str, bucket_file_name: str, local_file_name: str, debug=False) -> dict:
+        """
+        Will download a file from a bucket to a local file
+        Args:
+            source_bucket_name: string, name of the bucket
+            bucket_file_name: string, name of the file in the bucket (so that the full file path is source_bucket_name/bucket_file_name)
+            local_file_name: string, name of the file on your filesystem
+            debug: bool, if True will print debug information
+        """
         if debug:
             print(f"Downloading file {source_bucket_name}/{bucket_file_name} to {local_file_name}")
         source_bucket = self._get_bucket(source_bucket_name)
         source_blob = source_bucket.get_blob(bucket_file_name)
-        blob_metadata = source_blob.metadata
         source_blob.download_to_filename(local_file_name)
+        blob_metadata = source_blob.metadata
         return blob_metadata
 
 

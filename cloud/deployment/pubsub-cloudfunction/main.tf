@@ -52,7 +52,7 @@ resource "google_cloudfunctions2_function" "function_trigger_on_pubsub" {
     min_instance_count = var.min_instance_count
     available_memory   = var.available_memory
     available_cpu      = var.available_cpu
-    timeout_seconds    = 540
+    timeout_seconds    = var.timeout_seconds
     # Run-time environment variables
     environment_variables = {
       SERVICE_CONFIG_TEST = "config_test"
@@ -65,14 +65,10 @@ resource "google_cloudfunctions2_function" "function_trigger_on_pubsub" {
     }
     ingress_settings      = var.ingress_settings
     service_account_email = var.service_account_email
-    # vpc_access {
-    #   # Use the VPC Connector
-    #   connector = var.google_vpc_access_connector_id
-    #   # all egress from the service should go through the VPC Connector
-    #   egress = "ALL_TRAFFIC"
-    # }
-    vpc_connector = var.google_vpc_access_connector_id
-    vpc_connector_egress_settings = "ALL_TRAFFIC"
+
+    # remove VPC to allow for ingestion
+    # vpc_connector = var.google_vpc_access_connector_id
+    # vpc_connector_egress_settings = "ALL_TRAFFIC"
   }
 
   event_trigger {
