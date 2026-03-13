@@ -1,0 +1,51 @@
+[project]
+name = "karman"
+version = "2.0"
+description = "Thermospheric Density Continuous Learning"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [
+    { name = "FDL-X Heliolab 2024" },
+]
+dependencies = [
+    "matplotlib",
+    "jupyter",
+    "numpy<2",
+    "torch<2.3; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    "torch; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "tft-torch",
+    "omegaconf",
+    "scikit-learn",
+    "pandas",
+    "tables",
+    "tqdm",
+    "pyfiglet",
+    "termcolor",
+    "wandb",
+    "pyarrow",
+    "influxdb-client",
+    "nrlmsise00",
+    "spaceweather",
+    "google-cloud-storage",
+    "google-cloud-pubsub",
+    "netCDF4",
+]
+
+[project.urls]
+Homepage = "https://github.com/FrontierDevelopmentLab/2024-HL-ThermCL"
+
+[project.optional-dependencies]
+cloud = [
+    "influxdb-client",
+    "pandas",
+    "pyyaml",
+    "requests",
+    "pyarrow",
+    "google-cloud-storage",
+    "google-cloud-pubsub",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

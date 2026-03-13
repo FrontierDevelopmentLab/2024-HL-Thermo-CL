@@ -1,0 +1,55 @@
+{
+  "normalization_dict": {
+    "log_exp_residual": {
+      "max": -9.80734920501709,
+      "min": -13.99995231628418
+    }
+  },
+  "feature_names": [
+    "tudelft_thermo__altitude__[m]",
+    "tudelft_thermo__latitude__[deg]",
+    "celestrack__ap_average__",
+    "space_environment_technologies__f107_obs__",
+    "space_environment_technologies__f107_average__",
+    "space_environment_technologies__s107_obs__",
+    "space_environment_technologies__s107_average__",
+    "space_environment_technologies__m107_obs__",
+    "space_environment_technologies__m107_average__",
+    "space_environment_technologies__y107_obs__",
+    "space_environment_technologies__y107_average__",
+    "JB08__d_st_dt__[K]",
+    "tudelft_thermo__longitude__[deg]_sin",
+    "tudelft_thermo__longitude__[deg]_cos",
+    "all__day_of_year__[d]_sin",
+    "all__day_of_year__[d]_cos",
+    "all__seconds_in_day__[s]_sin",
+    "all__seconds_in_day__[s]_cos"
+  ],
+  "samples": [
+    {
+      "instantaneous_features": [0.4965, 0.3186, -0.8007, -0.1492, 0.4357, 0.5696, 0.7742, 0.1767, 0.5971, 0.7113, 0.7433, -0.4697, 0.0202, 0.9998, -0.4559, -0.8900, 0.2705, 0.9627],
+      "exponential_atmosphere": 1.2454e-12,
+      "ground_truth": 1.2774e-12
+    },
+    {
+      "instantaneous_features": [0.4278, 0.0661, -0.8007, -0.1492, 0.4357, 0.5696, 0.7742, 0.1767, 0.5971, 0.7113, 0.7433, -0.4697, 0.0153, 0.9999, -0.4559, -0.8900, 0.2950, 0.9555],
+      "exponential_atmosphere": 1.4929e-12,
+      "ground_truth": 1.6861e-12
+    },
+    {
+      "instantaneous_features": [0.4187, 0.0227, -0.8007, -0.1492, 0.4357, 0.5696, 0.7742, 0.1767, 0.5971, 0.7113, 0.7433, -0.4697, 0.0142, 0.9999, -0.4559, -0.8900, 0.2991, 0.9542],
+      "exponential_atmosphere": 1.5289e-12,
+      "ground_truth": 1.7021e-12
+    },
+    {
+      "instantaneous_features": [0.3963, -0.6501, -0.8007, -0.1492, 0.4357, 0.5696, 0.7742, 0.1767, 0.5971, 0.7113, 0.7433, -0.4697, 0.1992, -0.9800, -0.4559, -0.8900, 0.4297, 0.9030],
+      "exponential_atmosphere": 1.6234e-12,
+      "ground_truth": 2.7561e-12
+    },
+    {
+      "instantaneous_features": [0.3904, -0.5422, -0.8007, -0.1492, 0.4357, 0.5696, 0.7742, 0.1767, 0.5971, 0.7113, 0.7433, -0.4697, 0.1880, -0.9822, -0.4559, -0.8900, 0.4395, 0.8982],
+      "exponential_atmosphere": 1.6501e-12,
+      "ground_truth": 2.8184e-12
+    }
+  ]
+}
