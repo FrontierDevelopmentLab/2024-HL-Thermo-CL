@@ -3,6 +3,8 @@
   FDL-X Heliolab 2024<br/><strong>Thermospheric Density Continuous Learning</strong>
 </p>
 
+**Authors:** James Walsh, William Fawcett, Giacomo Acciarini, Aishwarya Kumar, Jordi Vila Perez 
+
 # Getting Started
 This section includes an overview of this repository and how to quickly get moving with the codebase. 
 ## Repo structure
@@ -29,8 +31,6 @@ cloud               # all code related to cloud pipeline
 
 To install in development (editable) mode: `uv pip install -e .`
 
-## Models Available
-(table of models) 
 
 
 # Background
