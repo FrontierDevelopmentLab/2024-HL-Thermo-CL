@@ -23,11 +23,11 @@ cloud               # all code related to cloud pipeline
 ```
 
 ## Environment Setup
-* Step 0: Download and install mambaforge (https://github.com/conda-forge/miniforge/releases)
-* Step 1: `git checkout base_karman`
-* Step 2: `mamba env create -f environment.yml`
-* Step 3: `mamba activate karman_hl_2024`
-* Step 4: `pip install .`, add the flag `-e` to install Karman in development mode
+* Step 0: Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+* Step 1: `uv sync` to create the virtual environment and install all dependencies
+* Step 2: `uv run <script>` to run scripts, or activate the venv with `source .venv/bin/activate`
+
+To install in development (editable) mode: `uv pip install -e .`
 
 ## Models Available
 (table of models) 
