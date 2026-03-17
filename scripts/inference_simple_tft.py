@@ -32,7 +32,7 @@ MODEL_PATH_LOCAL = os.path.join(os.path.dirname(__file__),
                           'ts_karman_model_tft_run_gpu_tft_w_omni_and_soho_wo_indices_and_proxies_w_10000_lag_100_resolution_valid_mape_14.936_params_1074865.torch')
 MODEL_PATH_S3 = 's3://nasa-radiant-data/helioai-datasets/hl-therm/models/ts_karman_model_tft_run_gpu_tft_w_omni_and_soho_wo_indices_and_proxies_w_10000_lag_100_resolution_valid_mape_14.936_params_1074865.torch'
 SAMPLE_DATA_PATH = os.path.join(os.path.dirname(__file__),
-                                '..', 'data', 'sample_inputs.pt')
+                                '..', 'data', 'sample_inputs_tft.pt')
 
 # Model architecture parameters (must match training)
 NUM_STATIC_NUMERIC = 8       # altitude, latitude, lon_sin/cos, doy_sin/cos, sid_sin/cos
