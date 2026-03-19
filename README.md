@@ -7,6 +7,15 @@
 
 # Getting Started
 This section includes an overview of this repository and how to quickly get moving with the codebase. 
+
+## Environment Setup
+* Step 0: Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+* Step 1: `uv sync` to create the virtual environment and install all dependencies
+* Step 2: `uv run <script>` to run scripts, or activate the venv with `source .venv/bin/activate`
+
+To install in development (editable) mode: `uv pip install -e .`
+
+
 ## Repo structure
 ```bash
 cloud               # all code related to cloud pipeline
@@ -24,12 +33,25 @@ cloud               # all code related to cloud pipeline
 └── scripts         # all scripts that use the `karman` package
 ```
 
-## Environment Setup
-* Step 0: Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
-* Step 1: `uv sync` to create the virtual environment and install all dependencies
-* Step 2: `uv run <script>` to run scripts, or activate the venv with `source .venv/bin/activate`
+## Recommended Hardware
+Specifications for the requirements of the cloud pipeline are given in a separate document in `cloud/README.md`.
+The code is designed to run on any modern CPU, but training the forecasting model is expected to be very slow without a GPU. The nowcast MLP model trains comfortably on CPU alone.
+The following are the recommended hardware specs for training the forecasting models: 
 
-To install in development (editable) mode: `uv pip install -e .`
+
+| Component | Recommendation |
+|-----------|---------------|
+| **CPU** | 16+ cores |
+| **RAM** | 64 GB |
+| **GPU** | NVIDIA with 16+ GB VRAM (e.g. RTX 4080/4090, A5000, V100, A100) |
+| **CUDA** | 12.0+ with compatible cuDNN |
+| **Storage** | 200 GB (ideally SSD) |
+
+A GPU is not strictly required — both training scripts default to CPU — but is strongly recommended for training the Temporal Fusion Transformer (TFT) model (~1M parameters over ~2M rows of data). The smaller nowcast MLP (~35K parameters) trains comfortably on CPU alone.
+
+**Cloud alternatives:** GCP `a2-highgpu-1g` (A100), AWS `p3.2xlarge` (V100) or `g5.2xlarge` (A10G), or Google Colab Pro (A100/V100 runtime).
+
+
 
 
 
